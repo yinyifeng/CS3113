@@ -232,8 +232,24 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
         }
 
     }
+    
+    m_horizontal_velocity += acceleration.x * delta_time;
+    
+    // Apply drift
+    if (m_horizontal_velocity > 0) {
+        m_horizontal_velocity -= drift * delta_time;
+        if (m_horizontal_velocity < 0) m_horizontal_velocity = 0;  // Stop if too low
+    } else if (m_horizontal_velocity < 0) {
+        m_horizontal_velocity += drift * delta_time;
+        if (m_horizontal_velocity > 0) m_horizontal_velocity = 0;  // Stop if too low
+    }
 
-    m_position.x += acceleration.x * delta_time;
+    // Update position based on horizontal velocity
+    m_position.x += m_horizontal_velocity * delta_time;
+
+    // Update horizontal position
+//    m_position.x += acceleration.x * delta_time;
+    m_position.x += m_horizontal_velocity * delta_time;
     m_position.y += acceleration.y * delta_time;
 
     m_model_matrix = glm::mat4(1.0f);

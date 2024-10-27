@@ -50,10 +50,9 @@ constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
 
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
-constexpr glm::vec3 WITCH_IDLE_SCALE = glm::vec3(1.0f, 1.0f, 0.0f);
+constexpr glm::vec3 PLAYER_IDLE_SCALE = glm::vec3(1.0f, 1.0f, 0.0f);
 constexpr glm::vec3 INIT_BACKGROUND_SCALE = glm::vec3(100.0f, 7.6f, 0.0f);
-//constexpr glm::vec3 WITCH_ATTACK_SCALE = glm::vec3(1.0f, 1.0f, 0.0f);
-constexpr glm::vec3 WITCH_IDLE_LOCATION = glm::vec3(0.0f, 0.0f, 0.0f);
+constexpr glm::vec3 PLAYER_IDLE_LOCATION = glm::vec3(0.0f, 0.0f, 0.0f);
 
 constexpr float ACCELERATION = 2.0f;
 
@@ -61,7 +60,7 @@ constexpr float ACCELERATION = 2.0f;
 enum AppStatus  { RUNNING, TERMINATED };
 enum FilterType { NEAREST, LINEAR     };
 
-struct GameState { Entity* witch; Map* map; };
+struct GameState { Entity* player; Map* map; };
 
 // ————— VARIABLES ————— //
 GameState g_game_state;
@@ -127,7 +126,7 @@ GLuint load_texture(const char* filepath)
 void initialise()
 {
     SDL_Init(SDL_INIT_VIDEO);
-    g_display_window = SDL_CreateWindow("Hello, Witch!",
+    g_display_window = SDL_CreateWindow("Hello, Ironman!",
                                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                       WINDOW_WIDTH, WINDOW_HEIGHT,
                                       SDL_WINDOW_OPENGL);
@@ -164,8 +163,8 @@ void initialise()
     GLuint map_texture_id = load_texture(MAP_TILESET_FILEPATH);
     g_game_state.map = new Map(LEVEL1_WIDTH, LEVEL1_HEIGHT, LEVEL_1_DATA, map_texture_id, 1.0f, 5, 1);
     
-    // ————— WITCH ————— //
-    std::vector<GLuint> witch_textures_ids = {
+    // ————— IRONMAN ————— //
+    std::vector<GLuint> ironman_textures_ids = {
 //        load_texture("assets/idle.png", NEAREST),   // IDLE spritesheet
 //        load_texture("assets/attack.png", NEAREST)  // ATTACK spritesheet
 
@@ -173,15 +172,15 @@ void initialise()
         load_texture("ironman_flying.png")  // IDLE spritesheet
     };
 
-    std::vector<std::vector<int>> witch_animations = {
+    std::vector<std::vector<int>> ironman_animations = {
         {0},       // IDLE animation frames
         {0}  // ATTACK animation frames
     };
 
-    g_game_state.witch = new Entity(
-        witch_textures_ids,  // a list of texture IDs
+    g_game_state.player = new Entity(
+        ironman_textures_ids,  // a list of texture IDs
         1.0f,                // translation speed; irrelevant in this problem
-        witch_animations,    // list of animation frames for each type of animation
+        ironman_animations,    // list of animation frames for each type of animation
         0.0f,                // animation time
         1,                   // number of frames for idle animation
         0,                   // current frame index
@@ -190,8 +189,8 @@ void initialise()
         IDLE                 // current animation
     );
 
-    g_game_state.witch->set_position(WITCH_IDLE_LOCATION);
-    g_game_state.witch->set_scale(WITCH_IDLE_SCALE);
+    g_game_state.player->set_position(PLAYER_IDLE_LOCATION);
+    g_game_state.player->set_scale(PLAYER_IDLE_SCALE);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -202,7 +201,7 @@ void initialise()
 
 void process_input()
 {
-    g_game_state.witch->set_animation_state(IDLE);
+    g_game_state.player->set_animation_state(IDLE);
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -231,37 +230,26 @@ void process_input()
     }
 
     const Uint8 *key_state = SDL_GetKeyboardState(NULL);
-//    glm::vec3 acceleration(0.0f, 0.0f, 0.0f);
 
     // Handle rotation
     if (key_state[SDL_SCANCODE_D]) {
-        g_game_state.witch->set_rotation(90.0f); // Rotate to 90 degrees
-//        acceleration.x = ACCELERATION;
+        g_game_state.player->set_rotation(90.0f); // Rotate to 90 degrees
     }
     else if (key_state[SDL_SCANCODE_A]) {
-        g_game_state.witch->set_rotation(-90.0f); // Rotate to -90 degrees
-//        acceleration.x = -ACCELERATION;
+        g_game_state.player->set_rotation(-90.0f); // Rotate to -90 degrees
     }
     else if (key_state[SDL_SCANCODE_W]) {
-        g_game_state.witch->set_rotation(0.0f); // Rotate back to 0 degrees
-//        acceleration.y = ACCELERATION;
+        g_game_state.player->set_rotation(0.0f); // Rotate back to 0 degrees
     }
 
     // Movement vector
-//    glm::vec3 movement(0.0f, 0.0f, 0.0f); // Initialize movement vector
-    float angle = g_game_state.witch->get_rotation();
+    float angle = g_game_state.player->get_rotation();
 
     // Handle acceleration
     if (key_state[SDL_SCANCODE_SPACE]) {
-//        if (angle == 0.0f) {
-//            acceleration.y = 2.0f; // Move up
-//        }
-
-        // Apply movement to the witch
-//        g_game_state.witch->set_movement(movement);
-        g_game_state.witch->set_animation_state(ATTACK);
+        g_game_state.player->set_animation_state(ATTACK);
     }
-//    g_game_state.witch->set_movement(acceleration);
+
 }
 
 
@@ -274,13 +262,13 @@ void update()
 
     g_background_matrix = glm::mat4(1.0f);
     g_background_matrix = glm::scale(g_background_matrix, INIT_BACKGROUND_SCALE);
-    g_game_state.witch->update(delta_time, g_game_state.witch, NULL, 0,
+    g_game_state.player->update(delta_time, g_game_state.player, NULL, 0,
                                g_game_state.map);
     
     g_view_matrix = glm::mat4(1.0f);
     
     // Camera Follows the player
-    g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_game_state.witch->get_position().x, 0.0f, 0.0f));
+    g_view_matrix = glm::translate(g_view_matrix, glm::vec3(-g_game_state.player->get_position().x, 0.0f, 0.0f));
 }
 
 void draw_object(glm::mat4 &object_g_model_matrix, GLuint &object_texture_id)
@@ -296,7 +284,7 @@ void render()
     glClear(GL_COLOR_BUFFER_BIT);
 
 
-    g_game_state.witch->render(&g_shader_program);
+    g_game_state.player->render(&g_shader_program);
     g_game_state.map->render(&g_shader_program);
     SDL_GL_SwapWindow(g_display_window);
 }
@@ -305,7 +293,7 @@ void render()
 void shutdown()
 {
     SDL_Quit();
-    delete   g_game_state.witch;
+    delete   g_game_state.player;
 }
 
 

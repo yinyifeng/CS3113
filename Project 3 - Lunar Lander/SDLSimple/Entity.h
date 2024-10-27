@@ -8,7 +8,6 @@
 * Academic Misconduct.
 **/
 
-
 #include "Map.h"
 #include "glm/glm.hpp"
 #include "ShaderProgram.h"
@@ -45,10 +44,8 @@ private:
     
     float m_vertical_velocity = 0.0f; // Current vertical velocity
     const float GRAVITY = -0.05f; // Gravity acceleration
-    const float JUMP_VELOCITY = 2.0f; // Initial jump velocity
     
-    float horizontal_velocity = 0.0f;
-    float vertical_velocity = 0.0f;
+    float m_horizontal_velocity = 0.0f;
     
     glm::vec3 m_velocity; // To hold the current velocity
     glm::vec3 m_acceleration; // To hold the current acceleration
@@ -63,6 +60,8 @@ private:
     bool m_collided_bottom = false;
     bool m_collided_left   = false;
     bool m_collided_right  = false;
+    
+    const float drift = 0.5f;  // drift factor
     
 public:
     static constexpr int SECONDS_PER_FRAME = 6;
@@ -108,16 +107,13 @@ public:
     }
     
     void set_horizontal_velocity(float velocity) {
-            horizontal_velocity = velocity;
+            m_horizontal_velocity = velocity;
     }
 
     void set_vertical_velocity(float velocity) {
-        vertical_velocity = velocity;
+        m_vertical_velocity = velocity;
     }
 
-
-
-//    void set_acceleration(const glm::vec3& acceleration) { m_acceleration = acceleration; }
     void set_velocity(const glm::vec3& velocity) { m_velocity = velocity; }
 
     glm::vec3 get_velocity() const { return m_velocity; }
@@ -133,7 +129,6 @@ public:
     void check_collision_y(Entity* collidable_entities, int collidable_entity_count);
     void const check_collision_x(Entity* collidable_entities, int collidable_entity_count);
     
-    // Overloading our methods to check for only the map
     void const check_collision_y(Map *map);
     void const check_collision_x(Map *map);
     
