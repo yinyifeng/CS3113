@@ -19,14 +19,16 @@ class Entity
 {
 private:
     EntityType m_entity_type;
+    bool m_is_active = true;
     // ————— TEXTURES ————— //
+    GLuint m_texture_id; 
     std::vector<GLuint> m_texture_ids;  // Vector of texture IDs for different animations
 
     // ————— ANIMATIONS ————— //
     std::vector<std::vector<int>> m_animations;  // Indices for each animation type
 
     glm::vec3 m_movement;
-    glm::vec3 m_position = glm::vec3(0.0f, -100.0f, 0.0f);
+    glm::vec3 m_position = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 m_scale;
 
     glm::mat4 m_model_matrix;
@@ -42,19 +44,18 @@ private:
     // New rotation member variable
     float m_rotation; // Rotation angle in degrees
     
-    float m_vertical_velocity = 0.0f; // Current vertical velocity
     const float GRAVITY = -0.05f; // Gravity acceleration
-    
-    float m_horizontal_velocity = 0.0f;
-    
-    glm::vec3 m_velocity; // To hold the current velocity
+        
+    glm::vec3 m_velocity = glm::vec3(0.0f, 0.0f, 0.0f); // To hold the current velocity
     glm::vec3 m_acceleration; // To hold the current acceleration
+    glm::vec3 acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
     float m_gravity; // Gravity acceleration
     
     float ACCELERATION = 2.0f;
     
     float m_width = 1.0f,
           m_height = 1.0f;
+    
     // ————— COLLISIONS ————— //
     bool m_collided_top    = false;
     bool m_collided_bottom = false;
@@ -62,6 +63,8 @@ private:
     bool m_collided_right  = false;
     
     const float drift = 0.5f;  // drift factor
+    bool g_game_over = false;
+    int tile_collided_with;
     
 public:
     static constexpr int SECONDS_PER_FRAME = 6;
@@ -97,21 +100,9 @@ public:
     void set_rotation(float rotation) { m_rotation = rotation; } // Setter for rotation
     float get_rotation() const { return m_rotation; } // Getter for rotation
     
-    // New method to set vertical velocity (if needed)
-//    void set_vertical_velocity(float velocity) {m_vertical_velocity = velocity;}
-    float get_vertical_velocity() const {return m_vertical_velocity;}
-    
     glm::vec3 get_direction() const {
         float radians = glm::radians(m_rotation); // Convert degrees to radians
         return glm::vec3(cos(radians), sin(radians), 0.0f); // X and Y components based on rotation
-    }
-    
-    void set_horizontal_velocity(float velocity) {
-            m_horizontal_velocity = velocity;
-    }
-
-    void set_vertical_velocity(float velocity) {
-        m_vertical_velocity = velocity;
     }
 
     void set_velocity(const glm::vec3& velocity) { m_velocity = velocity; }
@@ -124,13 +115,17 @@ public:
         m_acceleration = acceleration;
     }
     
-    bool check_collision(Entity* other) const;
+    bool const check_collision(Entity* other) const;
     
-    void check_collision_y(Entity* collidable_entities, int collidable_entity_count);
+    void const check_collision_y(Entity* collidable_entities, int collidable_entity_count);
     void const check_collision_x(Entity* collidable_entities, int collidable_entity_count);
     
-    void const check_collision_y(Map *map);
+    bool check_collision_y(Map *map);
     void const check_collision_x(Map *map);
     
-
+    bool get_game_status() const { return g_game_over; }
+    void set_game_status(bool status) {g_game_over = status; }
+    
+    void set_collided_tile(const int tile) { tile_collided_with = tile; }
+    int get_collided_tile() {return tile_collided_with; }
 };

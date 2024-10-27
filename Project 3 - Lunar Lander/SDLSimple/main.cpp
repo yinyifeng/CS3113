@@ -12,6 +12,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define GL_SILENCE_DEPRECATION
 #define GL_GLEXT_PROTOTYPES 1
+#define FIXED_TIMESTEP 0.0166666f
 #define LEVEL1_WIDTH 14
 #define LEVEL1_HEIGHT 5
 
@@ -51,10 +52,8 @@ constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
 constexpr glm::vec3 PLAYER_IDLE_SCALE = glm::vec3(1.0f, 1.0f, 0.0f);
-constexpr glm::vec3 INIT_BACKGROUND_SCALE = glm::vec3(100.0f, 7.6f, 0.0f);
 constexpr glm::vec3 PLAYER_IDLE_LOCATION = glm::vec3(0.0f, 0.0f, 0.0f);
-
-constexpr float ACCELERATION = 2.0f;
+constexpr glm::vec3 INIT_FINAL_SCREEN_SCALE = glm::vec3(4.0f, 4.0f, 1.0f);
 
 // ————— STRUCTS AND ENUMS —————//
 enum AppStatus  { RUNNING, TERMINATED };
@@ -69,11 +68,13 @@ SDL_Window* g_display_window;
 AppStatus g_app_status = RUNNING;
 
 ShaderProgram g_shader_program;
-glm::mat4 g_view_matrix, g_projection_matrix, g_background_matrix;
+glm::mat4 g_view_matrix, g_projection_matrix, g_accomplished_matrix, g_failed_matrix;
 
-GLuint g_background_texture_id;
+constexpr char MAP_TILESET_FILEPATH[] = "tileset2.png",
+ACCOMPLISHED_FILEPATH[] = "accomplished.png",
+FAILED_FILEPATH[] = "failed.png";
 
-constexpr char MAP_TILESET_FILEPATH[] = "tileset2.png";
+GLuint g_accomplished_texture_id, g_failed_texture_id;
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -84,11 +85,14 @@ unsigned int LEVEL_1_DATA[] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
     0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 0, 0,
-    1, 2, 0, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1,
+    1, 0, 0, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1,
     2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
 };
 
-float g_previous_ticks = 0.0f;
+float g_previous_ticks = 0.0f,
+      g_accumulator    = 0.0f;
+
+bool game_over;
 
 void initialise();
 void process_input();
@@ -150,7 +154,6 @@ void initialise()
 
     g_view_matrix       = glm::mat4(1.0f);
     g_projection_matrix = glm::ortho(-5.0f, 5.0f, -3.75f, 3.75f, -1.0f, 1.0f);
-    g_background_matrix = glm::mat4(1.0f);
 
     g_shader_program.set_projection_matrix(g_projection_matrix);
     g_shader_program.set_view_matrix(g_view_matrix);
@@ -161,13 +164,10 @@ void initialise()
     
     // MAP SETUP //
     GLuint map_texture_id = load_texture(MAP_TILESET_FILEPATH);
-    g_game_state.map = new Map(LEVEL1_WIDTH, LEVEL1_HEIGHT, LEVEL_1_DATA, map_texture_id, 1.0f, 5, 1);
+    g_game_state.map = new Map(LEVEL1_WIDTH, LEVEL1_HEIGHT, LEVEL_1_DATA, map_texture_id, 1, 5, 1);
     
     // ————— IRONMAN ————— //
     std::vector<GLuint> ironman_textures_ids = {
-//        load_texture("assets/idle.png", NEAREST),   // IDLE spritesheet
-//        load_texture("assets/attack.png", NEAREST)  // ATTACK spritesheet
-
         load_texture("ironman_idle.png"),   // IDLE spritesheet
         load_texture("ironman_flying.png")  // IDLE spritesheet
     };
@@ -190,7 +190,16 @@ void initialise()
     );
 
     g_game_state.player->set_position(PLAYER_IDLE_LOCATION);
-    g_game_state.player->set_scale(PLAYER_IDLE_SCALE);
+//    g_game_state.player->set_scale(PLAYER_IDLE_SCALE);
+    
+    g_accomplished_matrix = glm::mat4(1.0f);
+    g_accomplished_matrix = glm::scale(g_accomplished_matrix, INIT_FINAL_SCREEN_SCALE);
+    
+    g_failed_matrix = glm::mat4(1.0f);
+    g_failed_matrix = glm::scale(g_failed_matrix, INIT_FINAL_SCREEN_SCALE);
+    
+    g_accomplished_texture_id  = load_texture(ACCOMPLISHED_FILEPATH);
+    g_failed_texture_id  = load_texture(FAILED_FILEPATH);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -202,6 +211,7 @@ void initialise()
 void process_input()
 {
     g_game_state.player->set_animation_state(IDLE);
+    g_game_state.player->set_acceleration(glm::vec3(0.0f));
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -242,10 +252,7 @@ void process_input()
         g_game_state.player->set_rotation(0.0f); // Rotate back to 0 degrees
     }
 
-    // Movement vector
-    float angle = g_game_state.player->get_rotation();
 
-    // Handle acceleration
     if (key_state[SDL_SCANCODE_SPACE]) {
         g_game_state.player->set_animation_state(ATTACK);
     }
@@ -260,10 +267,22 @@ void update()
     float delta_time = ticks - g_previous_ticks;
     g_previous_ticks = ticks;
 
-    g_background_matrix = glm::mat4(1.0f);
-    g_background_matrix = glm::scale(g_background_matrix, INIT_BACKGROUND_SCALE);
-    g_game_state.player->update(delta_time, g_game_state.player, NULL, 0,
-                               g_game_state.map);
+    delta_time += g_accumulator;
+    
+    if (delta_time < FIXED_TIMESTEP)
+    {
+        g_accumulator = delta_time;
+        return;
+    }
+    
+    while (delta_time >= FIXED_TIMESTEP)
+    {
+        g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
+                                    g_game_state.map);
+        delta_time -= FIXED_TIMESTEP;
+    }
+    
+    g_accumulator = delta_time;
     
     g_view_matrix = glm::mat4(1.0f);
     
@@ -280,12 +299,51 @@ void draw_object(glm::mat4 &object_g_model_matrix, GLuint &object_texture_id)
 
 void render()
 {
-    g_shader_program.set_view_matrix(g_view_matrix);
+    
     glClear(GL_COLOR_BUFFER_BIT);
+    // Vertices
+        float vertices[] =
+        {
+            -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f,  // triangle 1
+            -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f   // triangle 2
+        };
 
+        // Textures
+        float texture_coordinates[] =
+        {
+            0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,     // triangle 1
+            0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,     // triangle 2
+        };
 
-    g_game_state.player->render(&g_shader_program);
-    g_game_state.map->render(&g_shader_program);
+        glVertexAttribPointer(g_shader_program.get_position_attribute(), 2, GL_FLOAT, false,
+                              0, vertices);
+        glEnableVertexAttribArray(g_shader_program.get_position_attribute());
+
+        glVertexAttribPointer(g_shader_program.get_tex_coordinate_attribute(), 2, GL_FLOAT,
+                              false, 0, texture_coordinates);
+        glEnableVertexAttribArray(g_shader_program.get_tex_coordinate_attribute());
+
+    // Only render the player and the map if the game is not over
+    game_over = g_game_state.player->get_game_status();
+    if (!game_over) {
+        g_shader_program.set_view_matrix(g_view_matrix);
+        g_game_state.player->render(&g_shader_program);
+        g_game_state.map->render(&g_shader_program);
+    } else {
+        if (g_game_state.player->get_collided_tile() <= 1){
+            g_view_matrix = glm::mat4(1.0f);
+            g_shader_program.set_view_matrix(g_view_matrix);
+            g_accomplished_matrix = glm::mat4(1.0f);
+            g_accomplished_matrix = glm::scale(g_accomplished_matrix, INIT_FINAL_SCREEN_SCALE);
+            draw_object(g_accomplished_matrix, g_accomplished_texture_id);
+        }else{
+            g_view_matrix = glm::mat4(1.0f);
+            g_shader_program.set_view_matrix(g_view_matrix);
+            g_failed_matrix = glm::mat4(1.0f);
+            g_failed_matrix = glm::scale(g_failed_matrix, INIT_FINAL_SCREEN_SCALE);
+            draw_object(g_failed_matrix, g_failed_texture_id);
+        }
+    }
     SDL_GL_SwapWindow(g_display_window);
 }
 
@@ -294,11 +352,13 @@ void shutdown()
 {
     SDL_Quit();
     delete   g_game_state.player;
+    delete   g_game_state.map;
 }
 
 
 int main(int argc, char* argv[])
 {
+    std::cout << "Kinda buggy in identifying tiles to show end screen" << std::endl;
     initialise();
 
     while (g_app_status == RUNNING)

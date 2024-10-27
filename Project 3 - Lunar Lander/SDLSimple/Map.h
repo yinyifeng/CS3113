@@ -31,7 +31,7 @@ private:
     
     // Here, the level_data is the numerical "drawing" of the map
     unsigned int *m_level_data;
-    GLuint m_texture_id;
+    GLuint m_texture_id, tile1_texture_id;
     
     float m_tile_size;
     int   m_tile_count_x;
@@ -73,4 +73,7 @@ public:
     float const get_right_bound()  const { return m_right_bound;  }
     float const get_top_bound()    const { return m_top_bound;    }
     float const get_bottom_bound() const { return m_bottom_bound; }
+    
+    int get_tile_type(int x, int y);
+
 };

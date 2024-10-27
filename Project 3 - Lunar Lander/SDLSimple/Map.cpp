@@ -24,6 +24,9 @@ void Map::build()
         {
             int tile = m_level_data[y_coord * m_width + x_coord];
             if (tile == 0) continue;
+            if (tile == 1){
+                glBindTexture(GL_TEXTURE_2D, tile1_texture_id);
+            }
 
             // Calculate UV-coordinates with padding
             float padding = 0.006f; // Adjust based on your sprite sheet
@@ -122,3 +125,14 @@ bool Map::is_solid(glm::vec3 position, float *penetration_x, float *penetration_
     
     return true;
 }
+
+int Map::get_tile_type(int x, int y) {
+    // Ensure the coordinates are within bounds
+    if (x < 0 || x >= m_width || y < 0 || y >= m_height) {
+        return -1; // Return -1 or another designated value for out of bounds
+    }
+
+    // Retrieve the tile ID from the tile data array
+    return m_level_data[y * m_width + x]; // Assuming row-major order
+}
+

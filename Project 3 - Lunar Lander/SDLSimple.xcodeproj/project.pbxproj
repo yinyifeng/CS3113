@@ -12,7 +12,6 @@
 		A1DAF3092C94BD8800043FB1 /* SDL2_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DC6CA82C8AB4D00040BFD7 /* SDL2_image.framework */; };
 		A1DAF30A2C94BD8800043FB1 /* SDL2_mixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DC6CA62C8AB4D00040BFD7 /* SDL2_mixer.framework */; };
 		A1DAF30B2C94BD8800043FB1 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1DC6CA72C8AB4D00040BFD7 /* SDL2.framework */; };
-		A1DB7F272CCDB2A000DAA134 /* ironman.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DB7F262CCDB29A00DAA134 /* ironman.cpp */; };
 		A1DB7F2C2CCDB30B00DAA134 /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DB7F2B2CCDB30B00DAA134 /* Map.cpp */; };
 		A1DC6C952C8AB3AB0040BFD7 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DC6C942C8AB3AB0040BFD7 /* main.cpp */; };
 		A1DC6CA02C8AB4240040BFD7 /* ShaderProgram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DC6C9D2C8AB4240040BFD7 /* ShaderProgram.cpp */; };
@@ -40,10 +39,12 @@
 		A10B87FE2CCCF1D700F26238 /* ironman_idle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ironman_idle.png; sourceTree = "<group>"; };
 		A1C9F9A22CCCEFB60015C5C0 /* Entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Entity.h; sourceTree = "<group>"; };
 		A1C9F9A32CCCEFB60015C5C0 /* Entity.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Entity.cpp; sourceTree = "<group>"; };
-		A1DB7F262CCDB29A00DAA134 /* ironman.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ironman.cpp; sourceTree = "<group>"; };
 		A1DB7F2B2CCDB30B00DAA134 /* Map.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Map.cpp; sourceTree = "<group>"; };
 		A1DB7F2D2CCDB31600DAA134 /* Map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Map.h; sourceTree = "<group>"; };
 		A1DB7F2F2CCDBC0800DAA134 /* tileset2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tileset2.png; sourceTree = "<group>"; };
+		A1DB7F302CCDF4FF00DAA134 /* george_0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = george_0.png; sourceTree = "<group>"; };
+		A1DB7F332CCE2FC200DAA134 /* accomplished.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = accomplished.png; sourceTree = "<group>"; };
+		A1DB7F352CCE300000DAA134 /* failed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = failed.png; sourceTree = "<group>"; };
 		A1DC6C912C8AB3AB0040BFD7 /* SDLSimple */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SDLSimple; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1DC6C942C8AB3AB0040BFD7 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		A1DC6C9B2C8AB4240040BFD7 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
@@ -115,9 +116,11 @@
 				A10B87FE2CCCF1D700F26238 /* ironman_idle.png */,
 				A1DB7F2F2CCDBC0800DAA134 /* tileset2.png */,
 				A1DC6C942C8AB3AB0040BFD7 /* main.cpp */,
+				A1DB7F302CCDF4FF00DAA134 /* george_0.png */,
+				A1DB7F352CCE300000DAA134 /* failed.png */,
+				A1DB7F332CCE2FC200DAA134 /* accomplished.png */,
 				A1DB7F2B2CCDB30B00DAA134 /* Map.cpp */,
 				A1DB7F2D2CCDB31600DAA134 /* Map.h */,
-				A1DB7F262CCDB29A00DAA134 /* ironman.cpp */,
 			);
 			path = SDLSimple;
 			sourceTree = "<group>";
@@ -191,7 +194,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1DB7F272CCDB2A000DAA134 /* ironman.cpp in Sources */,
 				A1DB7F2C2CCDB30B00DAA134 /* Map.cpp in Sources */,
 				A1DC6C952C8AB3AB0040BFD7 /* main.cpp in Sources */,
 				A1C9F9A42CCCEFB60015C5C0 /* Entity.cpp in Sources */,
