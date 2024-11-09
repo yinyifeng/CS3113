@@ -5,10 +5,9 @@
 #include "glm/glm.hpp"
 #include "ShaderProgram.h"
 
-enum EntityType { PLATFORM, PLAYER, ENEMY  };
+enum EntityType { PLATFORM, PLAYER, ENEMY, POKEBALL };
 enum AIType     { WALKER, GUARD, JUMPER, ROTATOR };
-enum AIState    { WALKING, IDLE, ATTACKING, JUMPING };
-
+enum AIState    { WALKING, IDLE, ATTACKING };
 
 enum AnimationDirection { LEFT, RIGHT, UP, DOWN };
 
@@ -61,10 +60,14 @@ private:
     bool m_collided_bottom = false;
     bool m_collided_left   = false;
     bool m_collided_right  = false;
+    
+    AnimationDirection m_facing_direction;
 
 public:
     // ————— STATIC VARIABLES ————— //
     static constexpr int SECONDS_PER_FRAME = 4;
+    
+    float m_init_scale = 1.0f;
     
     // ————— METHODS ————— //
     Entity();
@@ -101,8 +104,8 @@ public:
     void face_up() { m_animation_indices = m_walking[UP]; }
     void face_down() { m_animation_indices = m_walking[DOWN]; }
 
-    void move_left() { m_movement.x = -1.0f; face_left(); }
-    void move_right() { m_movement.x = 1.0f;  face_right(); }
+    void move_left() { m_movement.x = -1.0f; face_left(); m_facing_direction = LEFT; }
+    void move_right() { m_movement.x = 1.0f;  face_right(); m_facing_direction = RIGHT; }
     void move_up() { m_movement.y = 1.0f;  face_up(); }
     void move_down() { m_movement.y = -1.0f; face_down(); }
     
@@ -148,13 +151,11 @@ public:
     void const set_width(float new_width) {m_width = new_width; }
     void const set_height(float new_height) {m_height = new_height; }
     
-    float min_x = -0.16f; // Left boundary for pacing
-        float max_x = 7.2f; // Right boundary for pacing
-        int direction; // Direction of movement: 1 (right), -1 (left)
-        
-        void ai_pace(); // Add this function to the AI logic
+    void reset(glm::vec3 position, glm::vec3 movement);
     
-    void ai_pit_detect(Map* map);
+    void shoot(glm::vec3 player_position, float direction);
+    
+    AnimationDirection get_facing_direction() const { return m_facing_direction; }
     
 //    void const set_rotation_frame(int new_frame) { m_rotation_frame = new_frame; }
 

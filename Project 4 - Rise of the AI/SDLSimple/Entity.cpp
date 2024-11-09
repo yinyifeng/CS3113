@@ -58,8 +58,8 @@ void Entity::ai_walk()
 }
 
 void Entity::ai_jump() {
-    if (m_ai_state == JUMPING && m_collided_bottom) {
-            m_is_jumping = true;  // Set jump flag to true, which will trigger the jump in update()
+    if (m_collided_bottom) {
+            jump();  // Set jump flag to true, which will trigger the jump in update()
     }
     printl_vec3(m_position);
     std::cout << "Collided Bottom: " << m_collided_bottom
@@ -262,6 +262,8 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
                 // Collision!
                 m_collided_right  = true;
                 
+                if(m_entity_type == POKEBALL) collidable_entity->deactivate();
+                
             } else if (m_velocity.x < 0)
             {
                 m_position.x    += x_overlap;
@@ -269,6 +271,7 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
  
                 // Collision!
                 m_collided_left  = true;
+                if(m_entity_type == POKEBALL) collidable_entity->deactivate();
             }
         }
     }
@@ -346,15 +349,31 @@ void const Entity::check_collision_x(Map *map)
         m_position.x += penetration_x;
         m_velocity.x = 0;
         m_collided_left = true;
+        if (m_entity_type == POKEBALL) deactivate();
     }
     if (map->is_solid(right, &penetration_x, &penetration_y) && m_velocity.x > 0)
     {
         m_position.x -= penetration_x;
         m_velocity.x = 0;
         m_collided_right = true;
+        if (m_entity_type == POKEBALL) deactivate();
     }
 }
 
+void Entity::reset(glm::vec3 position, glm::vec3 movement)
+{
+    m_position = position;
+    m_movement = movement;
+    m_velocity = glm::vec3(0.0f);
+    m_is_active = true;
+}
+
+void Entity::shoot(glm::vec3 player_position, float direction)
+{
+    m_position = glm::vec3(player_position.x + (direction * 0.5f), player_position.y, 0.0f); // Offset by 0.5f to appear in front of the player
+    m_velocity = glm::vec3(direction * m_speed, 0.0f, 0.0f); // Shoot in the direction player is facing
+    m_is_active = true;
+}
 
 void Entity::update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map)
 {
@@ -412,6 +431,13 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
 void Entity::render(ShaderProgram* program)
 {
     if (!m_is_active) return;
+    
+    m_model_matrix = glm::mat4(1.0f);
+    m_model_matrix = glm::translate(m_model_matrix, m_position);
+
+    // Scaling for visual size, without affecting the collision
+    m_model_matrix = glm::scale(m_model_matrix, glm::vec3(m_init_scale, m_init_scale, 1.0f));
+    
     program->set_model_matrix(m_model_matrix);
 
     if (m_animation_indices != NULL)

@@ -3,7 +3,7 @@
 #define LOG(argument) std::cout << argument << '\n'
 #define GL_GLEXT_PROTOTYPES 1
 #define FIXED_TIMESTEP 0.0166666f
-#define ENEMY_COUNT 3
+#define ENEMY_COUNT 4
 #define LEVEL1_WIDTH 25
 #define LEVEL1_HEIGHT 5
 
@@ -28,6 +28,8 @@ struct GameState
 {
     Entity *player;
     Entity *enemies;
+    
+    Entity *ball;
     
     Map *map;
 };
@@ -58,6 +60,7 @@ constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 constexpr char ASH_SPRITE_FILEPATH[]    = "ash_ketchup.png",
                PIPLUP_SPRITE_FILEPATH[] = "piplup.png",
                MAP_TILESET_FILEPATH[]   = "tilesheet.png",
+               BALL_FILEPATH[]          = "pokeball.png",
                FONTSHEET_FILEPATH[]     = "font1.png";
 
 constexpr int NUMBER_OF_TEXTURES = 1;
@@ -252,7 +255,7 @@ void initialise()
         player_texture_id,         // texture id
         5.0f,                      // speed
         acceleration,              // acceleration
-        4.0f,                      // jumping power
+        5.0f,                      // jumping power
         player_walking_animation,  // animation index sets
         0.0f,                      // animation time
         3,                         // animation frame amount
@@ -290,21 +293,37 @@ void initialise()
         g_game_state.enemies[i].face_down();
     }
     
-    g_game_state.enemies[0].set_position(glm::vec3(11.0f, -2.15f, 0.0f));
+    g_game_state.enemies[0].set_position(glm::vec3(13.5f, -2.15f, 0.0f));
     g_game_state.enemies[1].set_position(glm::vec3(17.5f, 0.85f, 0.0f));
-//    g_game_state.enemies[2].set_position(glm::vec3(22.6f, -2.1f, 0.0f));
+    g_game_state.enemies[2].set_position(glm::vec3(22.6f, -2.1f, 0.0f));
     
-    g_game_state.enemies[2].set_position(glm::vec3(2.0f, 5.0f, 0.0f));
+    g_game_state.enemies[3].set_position(glm::vec3(2.0f, 5.0f, 0.0f));
     
-    g_game_state.enemies[1].set_ai_type(ROTATOR);
+//    g_game_state.enemies[2].set_position(glm::vec3(2.0f, 5.0f, 0.0f));
     
     g_game_state.enemies[0].set_ai_type(GUARD);
     g_game_state.enemies[0].set_ai_state(IDLE);
     
-    g_game_state.enemies[2].set_ai_type(JUMPER);
-    g_game_state.enemies[2].set_ai_state(JUMPING);
-    g_game_state.enemies[2].set_jumping_power(2.0f);
+    g_game_state.enemies[1].set_ai_type(ROTATOR);
     
+    g_game_state.enemies[2].set_ai_type(JUMPER);
+//    g_game_state.enemies[2].set_ai_state(JUMPING);
+    g_game_state.enemies[2].set_jumping_power(1.0f);
+    
+    g_game_state.enemies[3].set_ai_type(GUARD);
+    g_game_state.enemies[3].set_ai_state(IDLE);
+    
+    g_game_state.enemies[3].set_speed(2.0f);
+    
+    
+    GLuint ball_texture_id = load_texture(BALL_FILEPATH);
+    g_game_state.ball = new Entity(ball_texture_id, 0.01f, 0.5f, 0.5f, POKEBALL);
+    
+    // Initialize the ball's transformation matrix (if not done already)
+    g_game_state.ball->m_init_scale = 0.25f;
+//    g_game_state.ball->set_position(glm::vec3(6.0f, 0.0f, 0.0f));
+    g_game_state.ball->set_speed(4.0f);
+    g_game_state.ball->deactivate();
     
     
     // ————— BLENDING ————— //
@@ -323,11 +342,7 @@ void process_input()
 {
     g_game_state.player->set_movement(glm::vec3(0.0f));
 //    g_game_state.enemies->set_movement(glm::vec3(0.0f));
-    
-    g_game_state.enemies[0].set_movement(glm::vec3(0.0f));
-    g_game_state.enemies[1].set_movement(glm::vec3(0.0f));
-    g_game_state.enemies[2].set_movement(glm::vec3(0.0f));
-    
+        
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -349,12 +364,26 @@ void process_input()
                         if (g_game_state.player->get_collided_bottom())
                         {
                             g_game_state.player->jump();
-//                            g_game_state.enemies[2].jump();
                         }
-                        if (g_game_state.enemies[2].get_collided_bottom())
+                       
+                        break;
+                        
+//                    case SDLK_k:
+//                        g_game_state.ball->set_movement(glm::vec3(1.0f, 0.0f, 0.0f));
+//                        break;
+//                        
+                    case SDLK_f:
+                        g_game_state.ball->activate();
+                        if (g_game_state.ball->get_is_active())
                         {
-                            g_game_state.enemies[2].jump();
+                            float direction = g_game_state.player->get_facing_direction() == RIGHT ? 1.0f : -1.0f;
+                            g_game_state.ball->set_position(glm::vec3(g_game_state.player->get_position().x, g_game_state.player->get_position().y, 0.0f));
+                            g_game_state.ball->set_movement(glm::vec3(direction, 0.0f, 0.0f));
                         }
+                        break;
+                        
+                    case SDLK_r:
+                        initialise();  // Reset game state
                         break;
                         
                     default:
@@ -368,9 +397,13 @@ void process_input()
     
     const Uint8 *key_state = SDL_GetKeyboardState(NULL);
 
-    if (key_state[SDL_SCANCODE_A])       g_game_state.player->move_left();
-    else if (key_state[SDL_SCANCODE_D]) g_game_state.player->move_right();
-         
+    if (key_state[SDL_SCANCODE_A] && !g_game_state.player->get_is_gameover())       g_game_state.player->move_left();
+    else if (key_state[SDL_SCANCODE_D] && !g_game_state.player->get_is_gameover()) g_game_state.player->move_right();
+    
+//    if (key_state[SDL_SCANCODE_K] && g_game_state.ball->get_is_active()){
+//        float direction = g_game_state.player->get_facing_direction() == RIGHT ? 1.0f : -1.0f;
+//        g_game_state.ball->shoot(g_game_state.player->get_position(), direction);
+//    }
     if (glm::length(g_game_state.player->get_movement()) > 1.0f)
         g_game_state.player->normalise_movement();
 }
@@ -396,10 +429,18 @@ void update()
 
         // Check for collisions between player and enemies
         g_game_state.player->check_collision_y(g_game_state.enemies, ENEMY_COUNT);
+        
+//        g_game_state.ball->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, ENEMY_COUNT, g_game_state.map);
+        
+        // Update the ball and check for collisions
+        if (g_game_state.ball->get_is_active()) {
+            g_game_state.ball->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, ENEMY_COUNT, g_game_state.map);
+        }
 
         // Update active enemies
         int active_enemies = 0;
         for (int i = 0; i < ENEMY_COUNT; i++) {
+            g_game_state.enemies[i].ai_activate(g_game_state.player, delta_time);
             if (g_game_state.enemies[i].get_is_active()) {
                   g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
 //                g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, g_game_state.player, 1, g_game_state.map);
@@ -437,6 +478,11 @@ void render()
     
     g_game_state.player->render(&g_shader_program);
     
+    
+    if (g_game_state.ball->get_is_active()) {
+            g_game_state.ball->render(&g_shader_program);
+        }
+    
     for (int i = 0; i < ENEMY_COUNT; i++) {
         if (g_game_state.enemies[i].get_is_active()) {
             g_game_state.enemies[i].render(&g_shader_program);
@@ -464,6 +510,7 @@ void shutdown()
     delete [] g_game_state.enemies;
     delete    g_game_state.player;
     delete    g_game_state.map;
+    delete    g_game_state.ball;
 }
 
 // ————— GAME LOOP ————— //
