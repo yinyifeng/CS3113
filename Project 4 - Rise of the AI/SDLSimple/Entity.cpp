@@ -262,7 +262,10 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
                 // Collision!
                 m_collided_right  = true;
                 
-                if(m_entity_type == POKEBALL) collidable_entity->deactivate();
+                if(m_entity_type == POKEBALL){
+                    deactivate();
+                    collidable_entity->deactivate();
+                }
                 
             } else if (m_velocity.x < 0)
             {
@@ -271,7 +274,10 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
  
                 // Collision!
                 m_collided_left  = true;
-                if(m_entity_type == POKEBALL) collidable_entity->deactivate();
+                if(m_entity_type == POKEBALL){
+                    deactivate();
+                    collidable_entity->deactivate();
+                }
             }
         }
     }
@@ -358,21 +364,6 @@ void const Entity::check_collision_x(Map *map)
         m_collided_right = true;
         if (m_entity_type == POKEBALL) deactivate();
     }
-}
-
-void Entity::reset(glm::vec3 position, glm::vec3 movement)
-{
-    m_position = position;
-    m_movement = movement;
-    m_velocity = glm::vec3(0.0f);
-    m_is_active = true;
-}
-
-void Entity::shoot(glm::vec3 player_position, float direction)
-{
-    m_position = glm::vec3(player_position.x + (direction * 0.5f), player_position.y, 0.0f); // Offset by 0.5f to appear in front of the player
-    m_velocity = glm::vec3(direction * m_speed, 0.0f, 0.0f); // Shoot in the direction player is facing
-    m_is_active = true;
 }
 
 void Entity::update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map)

@@ -35,6 +35,7 @@
 /* Begin PBXFileReference section */
 		A10B87FA2CCCF1B100F26238 /* attack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = attack.png; sourceTree = "<group>"; };
 		A10B87FB2CCCF1B100F26238 /* idle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = idle.png; sourceTree = "<group>"; };
+		A15643C22CDF75A300217AB7 /* pokeball.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pokeball.png; sourceTree = "<group>"; };
 		A1ABC9102CDB4AC200E478D7 /* soph.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = soph.png; sourceTree = "<group>"; };
 		A1ABC9132CDB4F8400E478D7 /* tilemap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tilemap.png; sourceTree = "<group>"; };
 		A1ABC9142CDB57C400E478D7 /* tilesheet_custom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tilesheet_custom.png; sourceTree = "<group>"; };
@@ -118,6 +119,7 @@
 				A1ABC9182CDB5B9000E478D7 /* tilesheet.png */,
 				A1ABC9102CDB4AC200E478D7 /* soph.png */,
 				A1ABC9212CDDD24E00E478D7 /* font1.png */,
+				A15643C22CDF75A300217AB7 /* pokeball.png */,
 				A1ABC9192CDD1DE400E478D7 /* ash_ketchup.png */,
 				A1ABC9202CDD5B4100E478D7 /* piplup.png */,
 				A1DC6C942C8AB3AB0040BFD7 /* main.cpp */,

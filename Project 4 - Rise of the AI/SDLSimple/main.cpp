@@ -383,6 +383,8 @@ void process_input()
                         break;
                         
                     case SDLK_r:
+                        game_win = false;
+                        game_lose = false;
                         initialise();  // Reset game state
                         break;
                         
@@ -397,8 +399,8 @@ void process_input()
     
     const Uint8 *key_state = SDL_GetKeyboardState(NULL);
 
-    if (key_state[SDL_SCANCODE_A] && !g_game_state.player->get_is_gameover())       g_game_state.player->move_left();
-    else if (key_state[SDL_SCANCODE_D] && !g_game_state.player->get_is_gameover()) g_game_state.player->move_right();
+    if (key_state[SDL_SCANCODE_A] && (!g_game_state.player->get_is_gameover() && !game_win))      g_game_state.player->move_left();
+    else if (key_state[SDL_SCANCODE_D] && (!g_game_state.player->get_is_gameover() && !game_win)) g_game_state.player->move_right();
     
 //    if (key_state[SDL_SCANCODE_K] && g_game_state.ball->get_is_active()){
 //        float direction = g_game_state.player->get_facing_direction() == RIGHT ? 1.0f : -1.0f;
@@ -410,7 +412,7 @@ void process_input()
 
 void update()
 {
-    if (game_win || g_game_state.player->get_is_gameover()) return; // stop updating when game end has been reached
+    if (game_win || g_game_state.player->get_is_gameover() || game_lose) return; // stop updating when game end has been reached
     
     float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND;
     float delta_time = ticks - g_previous_ticks;
@@ -426,9 +428,16 @@ void update()
     while (delta_time >= FIXED_TIMESTEP) {
         // Update player
         g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
+        
 
         // Check for collisions between player and enemies
         g_game_state.player->check_collision_y(g_game_state.enemies, ENEMY_COUNT);
+        
+        if (g_game_state.player->get_position().y < -5.0f) {
+            game_lose = true;
+            LOG("Player fell out of bounds! Game Over.");
+            break;
+        }
         
 //        g_game_state.ball->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, ENEMY_COUNT, g_game_state.map);
         
@@ -489,14 +498,13 @@ void render()
         }
     }
     
-    glm::vec3 player_position = g_game_state.player->get_position();
-    glm::vec3 text_position = player_position + glm::vec3(-1.8f, 2.0f, 0.0f);
-
     
     if (game_win){
-        draw_text(&g_shader_program, g_font_texture_id, "You Win!", 0.5f, 0.05f, text_position);
+        draw_text(&g_shader_program, g_font_texture_id, "You Win!", 0.5f, 0.05f, glm::vec3(g_game_state.player->get_position().x - 2.0f, 1.0f, 0.0f));
     }else if (g_game_state.player->get_is_gameover()){
-        draw_text(&g_shader_program, g_font_texture_id, "You Lose!", 0.5f, 0.05f, text_position);
+        draw_text(&g_shader_program, g_font_texture_id, "You Lose!", 0.5f, 0.05f, glm::vec3(g_game_state.player->get_position().x - 2.0f, 1.0f, 0.0f));
+    }else if(game_lose){
+        draw_text(&g_shader_program, g_font_texture_id, "You Lose!", 0.5f, 0.05f, glm::vec3(g_game_state.player->get_position().x - 2.0f, 1.0f, 0.0f));
     }
     
 

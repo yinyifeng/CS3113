@@ -150,10 +150,7 @@ public:
     void const set_jumping_power(float new_jumping_power) { m_jumping_power = new_jumping_power;}
     void const set_width(float new_width) {m_width = new_width; }
     void const set_height(float new_height) {m_height = new_height; }
-    
-    void reset(glm::vec3 position, glm::vec3 movement);
-    
-    void shoot(glm::vec3 player_position, float direction);
+
     
     AnimationDirection get_facing_direction() const { return m_facing_direction; }
     
