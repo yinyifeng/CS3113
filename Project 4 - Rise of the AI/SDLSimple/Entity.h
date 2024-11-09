@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Rise of the AI
+* Date due: 2024-11-9, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #ifndef ENTITY_H
 #define ENTITY_H
 
@@ -18,12 +28,10 @@ private:
     
     int m_walking[4][4]; // 4x4 array for walking animations
     
-    int enemy_rotation_frames[4] = { 4, 5, 6, 7 };
-
-    
     EntityType m_entity_type;
     AIType     m_ai_type;
     AIState    m_ai_state;
+    
     // ————— TRANSFORMATIONS ————— //
     glm::vec3 m_movement;
     glm::vec3 m_position;
@@ -37,8 +45,8 @@ private:
               m_jumping_power;
     
     bool m_is_jumping;
-
     bool game_lose;
+    
     // ————— TEXTURES ————— //
     GLuint    m_texture_id;
 
@@ -48,13 +56,12 @@ private:
         m_animation_index,
         m_animation_rows;
     
-    int m_rotation_frame;
-
     int* m_animation_indices = nullptr;
     float m_animation_time = 0.0f;
 
     float m_width = 1.0f,
           m_height = 1.0f;
+    
     // ————— COLLISIONS ————— //
     bool m_collided_top    = false;
     bool m_collided_bottom = false;
@@ -68,6 +75,7 @@ public:
     static constexpr int SECONDS_PER_FRAME = 4;
     
     float m_init_scale = 1.0f;
+    int m_rotation_frame = 0;
     
     // ————— METHODS ————— //
     Entity();
@@ -151,11 +159,8 @@ public:
     void const set_width(float new_width) {m_width = new_width; }
     void const set_height(float new_height) {m_height = new_height; }
 
-    
     AnimationDirection get_facing_direction() const { return m_facing_direction; }
     
-//    void const set_rotation_frame(int new_frame) { m_rotation_frame = new_frame; }
-
     // Setter for m_walking
     void set_walking(int walking[4][3])
     {

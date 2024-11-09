@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Rise of the AI
+* Date due: 2024-11-9, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #define GL_SILENCE_DEPRECATION
 #define STB_IMAGE_IMPLEMENTATION
 #define LOG(argument) std::cout << argument << '\n'
@@ -57,11 +67,11 @@ constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
 
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
-constexpr char ASH_SPRITE_FILEPATH[]    = "ash_ketchup.png",
-               PIPLUP_SPRITE_FILEPATH[] = "piplup.png",
-               MAP_TILESET_FILEPATH[]   = "tilesheet.png",
-               BALL_FILEPATH[]          = "pokeball.png",
-               FONTSHEET_FILEPATH[]     = "font1.png";
+constexpr char ASH_SPRITE_FILEPATH[]    = "assets/ash_ketchup.png",
+               PIPLUP_SPRITE_FILEPATH[] = "assets/piplup.png",
+               MAP_TILESET_FILEPATH[]   = "assets/tilesheet.png",
+               BALL_FILEPATH[]          = "assets/pokeball.png",
+               FONTSHEET_FILEPATH[]     = "assets/font1.png";
 
 constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
@@ -237,16 +247,16 @@ void initialise()
     GLuint map_texture_id = load_texture(MAP_TILESET_FILEPATH);
     g_game_state.map = new Map(LEVEL1_WIDTH, LEVEL1_HEIGHT, LEVEL_1_DATA, map_texture_id, 1.0f, 22, 1);
     
-    // ————— GEORGE SET-UP ————— //
+    // ————— PLAYER SET-UP ————— //
 
     GLuint player_texture_id = load_texture(ASH_SPRITE_FILEPATH);
 
     int player_walking_animation[4][3] =
     {
-        { 3, 7, 11 },  // for George to move to the left,
-        { 1, 5, 9  }, // for George to move to the right,
-        { 0, 4, 8  }, // for George to move upwards,
-        { 2, 6, 10 }   // for George to move downwards
+        { 3, 7, 11 },  // for Player to move to the left,
+        { 1, 5, 9  },  // for Player to move to the right,
+        { 0, 4, 8  },  // for Player to move upwards,
+        { 2, 6, 10 }   // for Player to move downwards
     };
 
     glm::vec3 acceleration = glm::vec3(0.0f,-4.905f, 0.0f);
@@ -263,24 +273,21 @@ void initialise()
         4,                         // animation column amount
         3,                         // animation row amount
         0.7f,                      // width
-        0.7f,                       // height
+        0.7f,                      // height
         PLAYER
     );
 
     g_game_state.player->set_position(glm::vec3(5.0f, 0.0f, 0.0f));
-
-    // Jumping
-//    g_game_state.player->set_jumping_power(4.0f);
     
-    // ----------- ENEMY Piplup ----------- //
+    // ----------- ENEMY SET-UP ----------- //
     GLuint enemy_texture_id = load_texture(PIPLUP_SPRITE_FILEPATH);
     
     int enemy_walking_animation[4][3] =
     {
-        { 3, 7, 11 },  // for George to move to the left,
-        { 1, 5, 9  }, // for George to move to the right,
-        { 0, 4, 8  }, // for George to move upwards,
-        { 2, 6, 10 }   // for George to move downwards
+        { 3, 7, 11 },  // for Enemy to move to the left,
+        { 1, 5, 9  },  // for Enemy to move to the right,
+        { 0, 4, 8  },  // for Enemy to move upwards,
+        { 2, 6, 10 }   // for Enemy to move downwards
     };
     
     g_game_state.enemies = new Entity[ENEMY_COUNT];
@@ -288,60 +295,48 @@ void initialise()
     for (int i = 0; i < ENEMY_COUNT; i++)
     {
         g_game_state.enemies[i] = Entity(enemy_texture_id, 0.5f, acceleration, 0.1f, enemy_walking_animation, 0.0f, 3, 0, 4, 3, 0.25f, 0.7f, ENEMY);
-//        g_game_state.enemies[i].set_position(glm::vec3(i + 2.0f, -2.1f, 0.0f));
         g_game_state.enemies[i].set_movement(glm::vec3(0.0f));
         g_game_state.enemies[i].face_down();
     }
     
+    // setting initial positions for enemies
     g_game_state.enemies[0].set_position(glm::vec3(13.5f, -2.15f, 0.0f));
     g_game_state.enemies[1].set_position(glm::vec3(17.5f, 0.85f, 0.0f));
     g_game_state.enemies[2].set_position(glm::vec3(22.6f, -2.1f, 0.0f));
-    
     g_game_state.enemies[3].set_position(glm::vec3(2.0f, 5.0f, 0.0f));
-    
-//    g_game_state.enemies[2].set_position(glm::vec3(2.0f, 5.0f, 0.0f));
     
     g_game_state.enemies[0].set_ai_type(GUARD);
     g_game_state.enemies[0].set_ai_state(IDLE);
-    
     g_game_state.enemies[1].set_ai_type(ROTATOR);
     
     g_game_state.enemies[2].set_ai_type(JUMPER);
-//    g_game_state.enemies[2].set_ai_state(JUMPING);
     g_game_state.enemies[2].set_jumping_power(1.0f);
     
     g_game_state.enemies[3].set_ai_type(GUARD);
     g_game_state.enemies[3].set_ai_state(IDLE);
-    
     g_game_state.enemies[3].set_speed(2.0f);
     
-    
+    // ----------- BALL SET-UP ----------- //
     GLuint ball_texture_id = load_texture(BALL_FILEPATH);
     g_game_state.ball = new Entity(ball_texture_id, 0.01f, 0.5f, 0.5f, POKEBALL);
-    
-    // Initialize the ball's transformation matrix (if not done already)
     g_game_state.ball->m_init_scale = 0.25f;
-//    g_game_state.ball->set_position(glm::vec3(6.0f, 0.0f, 0.0f));
     g_game_state.ball->set_speed(4.0f);
     g_game_state.ball->deactivate();
-    
     
     // ————— BLENDING ————— //
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-
+// helper function for d
 void print_vec3(const glm::vec3& vec)
 {
     std::cout << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")" << std::endl;
 }
 
-
 void process_input()
 {
     g_game_state.player->set_movement(glm::vec3(0.0f));
-//    g_game_state.enemies->set_movement(glm::vec3(0.0f));
         
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -368,12 +363,8 @@ void process_input()
                        
                         break;
                         
-//                    case SDLK_k:
-//                        g_game_state.ball->set_movement(glm::vec3(1.0f, 0.0f, 0.0f));
-//                        break;
-//                        
                     case SDLK_f:
-                        g_game_state.ball->activate();
+                        g_game_state.ball->activate(); // reactivate ball when 'f' is pressed
                         if (g_game_state.ball->get_is_active())
                         {
                             float direction = g_game_state.player->get_facing_direction() == RIGHT ? 1.0f : -1.0f;
@@ -402,10 +393,6 @@ void process_input()
     if (key_state[SDL_SCANCODE_A] && (!g_game_state.player->get_is_gameover() && !game_win))      g_game_state.player->move_left();
     else if (key_state[SDL_SCANCODE_D] && (!g_game_state.player->get_is_gameover() && !game_win)) g_game_state.player->move_right();
     
-//    if (key_state[SDL_SCANCODE_K] && g_game_state.ball->get_is_active()){
-//        float direction = g_game_state.player->get_facing_direction() == RIGHT ? 1.0f : -1.0f;
-//        g_game_state.ball->shoot(g_game_state.player->get_position(), direction);
-//    }
     if (glm::length(g_game_state.player->get_movement()) > 1.0f)
         g_game_state.player->normalise_movement();
 }
@@ -429,7 +416,6 @@ void update()
         // Update player
         g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
         
-
         // Check for collisions between player and enemies
         g_game_state.player->check_collision_y(g_game_state.enemies, ENEMY_COUNT);
         
@@ -438,9 +424,7 @@ void update()
             LOG("Player fell out of bounds! Game Over.");
             break;
         }
-        
-//        g_game_state.ball->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, ENEMY_COUNT, g_game_state.map);
-        
+                
         // Update the ball and check for collisions
         if (g_game_state.ball->get_is_active()) {
             g_game_state.ball->update(FIXED_TIMESTEP, g_game_state.player, g_game_state.enemies, ENEMY_COUNT, g_game_state.map);
@@ -451,8 +435,7 @@ void update()
         for (int i = 0; i < ENEMY_COUNT; i++) {
             g_game_state.enemies[i].ai_activate(g_game_state.player, delta_time);
             if (g_game_state.enemies[i].get_is_active()) {
-                  g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
-//                g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, g_game_state.player, 1, g_game_state.map);
+                g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
                 active_enemies++;
             }
         }
@@ -474,7 +457,6 @@ void update()
     
     print_vec3(g_game_state.player->get_position());
 }
-
 
 
 void render()
@@ -507,7 +489,6 @@ void render()
         draw_text(&g_shader_program, g_font_texture_id, "You Lose!", 0.5f, 0.05f, glm::vec3(g_game_state.player->get_position().x - 2.0f, 1.0f, 0.0f));
     }
     
-
     SDL_GL_SwapWindow(g_display_window);
 }
 

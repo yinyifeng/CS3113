@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Rise of the AI
+* Date due: 2024-11-9, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #define GL_SILENCE_DEPRECATION
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -13,6 +23,7 @@
 #include "ShaderProgram.h"
 #include "Entity.h"
 
+// helper function to print vectors for testing/debugging
 void printl_vec3(const glm::vec3& vec)
 {
     std::cout << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")" << std::endl;
@@ -45,25 +56,17 @@ void Entity::ai_activate(Entity *player, float delta_time)
 
 void Entity::ai_walk()
 {
-    // Check boundaries and reverse direction
-    if (m_position.x >= 16.4f) {
-        // Reached the right boundary, move left
-        face_left();
-        m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);  // Move left
-    } else if (m_position.x <= 16.4f) {
-        // Reached the left boundary, move right
-        face_right();
-        m_movement = glm::vec3(1.0f, 0.0f, 0.0f);   // Move right
-    }
+    m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
 }
 
 void Entity::ai_jump() {
     if (m_collided_bottom) {
-            jump();  // Set jump flag to true, which will trigger the jump in update()
+            jump();
     }
-    printl_vec3(m_position);
-    std::cout << "Collided Bottom: " << m_collided_bottom
-              << ", Is Jumping: " << m_is_jumping << std::endl;
+    
+//    print1_vec3(m_position);
+//    std::cout << "Collided Bottom: " << m_collided_bottom
+//              << ", Is Jumping: " << m_is_jumping << std::endl;
 
 }
 
@@ -105,6 +108,7 @@ void Entity::ai_guard(Entity *player)
             break;
     }
 }
+
 // Default constructor
 Entity::Entity()
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
@@ -235,7 +239,7 @@ void const Entity::check_collision_y(Entity *collidable_entities, int collidable
                 // Deactivate the collidable entity (e.g., an enemy)
                 collidable_entity->deactivate();
 
-                // Optional: Add bounce effect after stomping
+                // bounce after player jumps on enemy
                 jump();
             }else{
                 game_lose = true;
@@ -263,8 +267,8 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
                 m_collided_right  = true;
                 
                 if(m_entity_type == POKEBALL){
-                    deactivate();
-                    collidable_entity->deactivate();
+                    deactivate(); // deactivate ball
+                    collidable_entity->deactivate(); // deactivate enemy
                 }
                 
             } else if (m_velocity.x < 0)
@@ -274,6 +278,7 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
  
                 // Collision!
                 m_collided_left  = true;
+                
                 if(m_entity_type == POKEBALL){
                     deactivate();
                     collidable_entity->deactivate();
