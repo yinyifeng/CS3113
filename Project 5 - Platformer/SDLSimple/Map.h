@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Platformer
+* Date due: 2023-11-23, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #pragma once
 #define GL_SILENCE_DEPRECATION
 #ifdef _WINDOWS
@@ -15,7 +25,9 @@
 
 constexpr unsigned int NON_COLLIDABLE_TILES[] = {0, 29, 30, 31, 32}; // Add IDs of tiles that are not solid
 
-class Map {
+
+class Map
+{
 private:
     int m_width;
     int m_height;
@@ -36,11 +48,10 @@ private:
     // The boundaries of the map
     float m_left_bound, m_right_bound, m_top_bound, m_bottom_bound;
     
-    
 public:
     // Constructor
-    Map(int width, int height, unsigned int *level_data, GLuint texture_id, float tile_size, int
-    tile_count_x, int tile_count_y);
+    Map(int width, int height, unsigned int *level_data, GLuint texture_id,
+        float tile_size, int tile_count_x, int tile_count_y);
     
     // Methods
     void build();

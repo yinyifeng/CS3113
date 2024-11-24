@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Platformer
+* Date due: 2023-11-23, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #define GL_SILENCE_DEPRECATION
 #define GL_GLEXT_PROTOTYPES 1
 #define FIXED_TIMESTEP 0.0166666f
@@ -27,6 +37,8 @@
 #include "LevelA.h"
 #include "LevelB.h"
 #include "LevelC.h"
+#include "GameLost.h"
+#include "GameWon.h"
 
 // ————— CONSTANTS ————— //
 constexpr int WINDOW_WIDTH  = 640 * 1.5,
@@ -43,7 +55,9 @@ constexpr int VIEWPORT_X = 0,
           VIEWPORT_HEIGHT = WINDOW_HEIGHT;
 
 constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
-           F_SHADER_PATH[] = "shaders/fragment_textured.glsl";
+               F_SHADER_PATH[] = "shaders/fragment_textured.glsl";
+
+constexpr char DAMAGE_FILEPATH[] = "assets/damage.mp3";
 
 constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
@@ -55,6 +69,26 @@ LevelA *g_level_a;
 LevelB *g_level_b;
 LevelC *g_level_c;
 Menu *g_level_menu;
+GameLost *g_level_lost;
+GameWon *g_level_won;
+
+Mix_Chunk *g_damage_sfx;
+
+// BGM
+constexpr int CD_QUAL_FREQ    = 44100,  // CD quality
+          AUDIO_CHAN_AMT  = 2,      // Stereo
+          AUDIO_BUFF_SIZE = 4096,
+          LOOP_FOREVER   = -1;  // -1 means loop forever in Mix_PlayMusic; 0 means play once and loop zero times
+
+// SFX
+//constexpr int PLAY_ONCE   =  0,
+//          NEXT_CHNL   = -1,  // next available channel
+//          MUTE_VOL    =  0,
+//          MILS_IN_SEC =  1000,
+//          ALL_SFX_CHN = -1;
+
+int lives = 3;
+bool gameover = false;
 
 SDL_Window* g_display_window;
 
@@ -117,12 +151,22 @@ void initialise()
     
     glClearColor(BG_RED, BG_BLUE, BG_GREEN, BG_OPACITY);
     
+    // Start Audio
+    Mix_OpenAudio(
+        CD_QUAL_FREQ,        // the frequency to playback audio at (in Hz)
+        MIX_DEFAULT_FORMAT,  // audio format
+        AUDIO_CHAN_AMT,      // number of channels (1 is mono, 2 is stereo, etc).
+        AUDIO_BUFF_SIZE      // audio buffer size in sample FRAMES (total samples divided by channel count)
+    );
+
+    g_damage_sfx = Mix_LoadWAV(DAMAGE_FILEPATH);
+
+    Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
+    Mix_VolumeChunk(g_damage_sfx, MIX_MAX_VOLUME / 2);
     
-    // ————— LEVEL A SETUP ————— //
-    g_level_a = new LevelA();
-    switch_to_scene(g_level_a);
-//    g_level_menu = new Menu();
-//    switch_to_scene(g_level_menu);
+    // ————— MENU SETUP ————— //
+    g_level_menu = new Menu();
+    switch_to_scene(g_level_menu);
     
     // ————— BLENDING ————— //
     glEnable(GL_BLEND);
@@ -161,9 +205,8 @@ void process_input()
                          break;
                         
                     case SDLK_RETURN:
+                        // MENU - ENTER GAME
                         if (g_current_scene == g_level_menu){
-//                            g_level_a = new LevelA();
-//                            switch_to_scene(g_level_a);
                             g_current_scene->get_state().next_scene_id = 1;
                         }
                         
@@ -187,8 +230,7 @@ void process_input()
  
 }
 
-void update()
-{
+void update() {
     // ————— DELTA TIME / FIXED TIME STEP CALCULATION ————— //
     float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND;
     float delta_time = ticks - g_previous_ticks;
@@ -196,22 +238,18 @@ void update()
     
     delta_time += g_accumulator;
     
-    if (delta_time < FIXED_TIMESTEP)
-    {
+    if (delta_time < FIXED_TIMESTEP) {
         g_accumulator = delta_time;
         return;
     }
     
     while (delta_time >= FIXED_TIMESTEP) {
-        // ————— UPDATING THE SCENE (i.e. map, character, enemies...) ————— //
-        g_current_scene->update(FIXED_TIMESTEP);
-        
+        if (g_current_scene) g_current_scene->update(FIXED_TIMESTEP);
         delta_time -= FIXED_TIMESTEP;
     }
     
     g_accumulator = delta_time;
-    
-    
+
     // ————— PLAYER CAMERA ————— //
     g_view_matrix = glm::mat4(1.0f);
     
@@ -223,35 +261,18 @@ void update()
             player_position.x = 0.5f;
             g_current_scene->get_state().player->set_position(player_position);
         }
-        
-//        if (player_position.x > 23.5f) {
-////            player_position.x = 20.0f;
-////            g_current_scene->get_state().player->set_position(player_position);
-//            g_level_b = new LevelB();
-//            switch_to_scene(g_level_b);
-//        }
 
         // Adjust the camera view matrix based on the player's position
         if (player_position.x > LEVEL1_LEFT_EDGE && player_position.x < LEVEL1_RIGHT_EDGE) {
-            // Center the camera on the player
             g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-player_position.x, 3.75, 0));
         } else if (player_position.x <= LEVEL1_LEFT_EDGE) {
-            // Clamp to the left edge
             g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-LEVEL1_LEFT_EDGE, 3.75, 0));
         } else {
-            // Clamp to the right edge
             g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-LEVEL1_RIGHT_EDGE, 3.75, 0));
         }
-
-        
-//        if (player_position.y < -8.0f) {
-//            g_level_b = new LevelB();
-//            switch_to_scene(g_level_b);
-//        }
     }
     
     if (g_current_scene->get_state().next_scene_id != -1) {
-        Scene* previous_scene = g_current_scene; // Store the current scene for cleanup
         switch (g_current_scene->get_state().next_scene_id) {
             case 1: // Transition to LevelA
                 g_level_a = new LevelA();
@@ -265,30 +286,86 @@ void update()
                 g_level_c = new LevelC();
                 switch_to_scene(g_level_c);
                 break;
+            case 4: // Transition to GameWon
+                g_level_won = new GameWon();
+                switch_to_scene(g_level_won);
+                break;
             default:
                 break;
         }
-//
-//        // Safely delete the previous scene after transitioning
-//        delete previous_scene;
-//        g_current_scene->get_state().next_scene_id = -1; // Reset after transition
     }
     
-    print_vec3(g_current_scene->get_state().player->get_position());
+    // ————— COLLISION LOGIC ————— //
+    if (!gameover && g_current_scene && g_current_scene->get_state().player) {
+        // checks if we are in a level
+        if (typeid(*g_current_scene) == typeid(LevelA) ||
+            typeid(*g_current_scene) == typeid(LevelB) ||
+            typeid(*g_current_scene) == typeid(LevelC)) {
+            
+            // iterates through 2 enemies
+            for (int i = 0; i < 2; i++) {
+                Entity& enemy = g_current_scene->get_state().enemies[i];
+                
+                // checks collisions with active enemies
+                if (enemy.get_is_active() && g_current_scene->get_state().player->check_collision(&enemy)) {
+                    enemy.deactivate();
+                    Mix_PlayChannel(-1, g_damage_sfx, 0);   // play damage sfx when hit
+                    lives--;
+                    if (lives <= 0) {
+                        gameover = true;
+                        g_level_lost = new GameLost();
+                        switch_to_scene(g_level_lost); // render game lost screen when all lives = 0
+                        return;
+                    }
+                }
+            }
+        }
+    }
     
+    // checks if player falls off platform(s)
+    if (g_current_scene->get_state().player->get_position().y < -8.0f) {
+        Mix_PlayChannel(-1, g_damage_sfx, 0);
+        gameover = true;
+        g_level_lost = new GameLost();
+        switch_to_scene(g_level_lost);
+        return;
+    }
+
+//    print_vec3(g_current_scene->get_state().player->get_position());
 }
+
 
 void render()
 {
+    // Set the view matrix for the main game rendering
     g_shader_program.set_view_matrix(g_view_matrix);
     
+    // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT);
     
-    // ————— RENDERING THE SCENE (i.e. map, character, enemies...) ————— //
+    // Render the current scene (e.g., player, enemies, map)
     g_current_scene->render(&g_shader_program);
-    
+
+    // Reset view matrix for lives text rendering
+    glm::mat4 temp_view_matrix = glm::mat4(1.0f);
+    g_shader_program.set_view_matrix(temp_view_matrix);
+
+    // Render the Lives text at the top-left corner
+    Utility::draw_text(
+        &g_shader_program,
+        Utility::load_texture("assets/font1.png"),
+        "Lives: " + std::to_string(lives),
+        0.3f,                        // Text size
+        0.0f,                        // Spacing between characters
+        glm::vec3(-4.5f, 3.1f, 0.0f) // coordinates for top-left corner
+    );
+
+    // Restore the main view matrix for game rendering
+    g_shader_program.set_view_matrix(g_view_matrix);
+
     SDL_GL_SwapWindow(g_display_window);
 }
+
 
 void shutdown()
 {
@@ -299,6 +376,8 @@ void shutdown()
     delete g_level_b;
     delete g_level_c;
     delete g_level_menu;
+    delete g_level_lost;
+    delete g_level_won;
  
 }
 

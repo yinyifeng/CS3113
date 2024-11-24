@@ -1,13 +1,23 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Platformer
+* Date due: 2023-11-23, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #ifndef ENTITY_H
 #define ENTITY_H
 
 #include "Map.h"
 #include "glm/glm.hpp"
 #include "ShaderProgram.h"
-enum EntityType { PLATFORM, PLAYER, ENEMY  };
-enum AIType     { WALKER, GUARD            };
-enum AIState    { WALKING, IDLE, ATTACKING };
 
+enum EntityType { PLATFORM, PLAYER, ENEMY, POKEBALL };
+enum AIType     { WALKER, GUARD, JUMPER, ROTATOR };
+enum AIState    { WALKING, IDLE, ATTACKING };
 
 enum AnimationDirection { LEFT, RIGHT, UP, DOWN };
 
@@ -17,11 +27,11 @@ private:
     bool m_is_active = true;
     
     int m_walking[4][3]; // 4x4 array for walking animations
-
     
     EntityType m_entity_type;
     AIType     m_ai_type;
     AIState    m_ai_state;
+    
     // ————— TRANSFORMATIONS ————— //
     glm::vec3 m_movement;
     glm::vec3 m_position;
@@ -35,7 +45,8 @@ private:
               m_jumping_power;
     
     bool m_is_jumping;
-
+    bool game_lose;
+    
     // ————— TEXTURES ————— //
     GLuint    m_texture_id;
 
@@ -44,22 +55,28 @@ private:
     int m_animation_frames,
         m_animation_index,
         m_animation_rows;
-
+    
     int* m_animation_indices = nullptr;
     float m_animation_time = 0.0f;
 
     float m_width = 1.0f,
           m_height = 1.0f;
+    
     // ————— COLLISIONS ————— //
     bool m_collided_top    = false;
     bool m_collided_bottom = false;
     bool m_collided_left   = false;
     bool m_collided_right  = false;
+    
+    AnimationDirection m_facing_direction;
 
 public:
     // ————— STATIC VARIABLES ————— //
     static constexpr int SECONDS_PER_FRAME = 4;
-
+    
+    float m_init_scale = 1.0f;
+    int m_rotation_frame = 0;
+    
     // ————— METHODS ————— //
     Entity();
     Entity(GLuint texture_id, float speed, glm::vec3 acceleration, float jump_power, int walking[4][3], float animation_time,
@@ -82,8 +99,10 @@ public:
     void update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map);
     void render(ShaderProgram* program);
 
-    void ai_activate(Entity *player);
+    void ai_activate(Entity *player, float delta_time);
     void ai_walk();
+    void ai_jump();
+    void ai_rotate(float delta_time);
     void ai_guard(Entity *player);
     
     void normalise_movement() { m_movement = glm::normalize(m_movement); }
@@ -93,8 +112,8 @@ public:
     void face_up() { m_animation_indices = m_walking[UP]; }
     void face_down() { m_animation_indices = m_walking[DOWN]; }
 
-    void move_left() { m_movement.x = -1.0f; face_left(); }
-    void move_right() { m_movement.x = 1.0f;  face_right(); }
+    void move_left() { m_movement.x = -1.0f; face_left(); m_facing_direction = LEFT; }
+    void move_right() { m_movement.x = 1.0f;  face_right(); m_facing_direction = RIGHT; }
     void move_up() { m_movement.y = 1.0f;  face_up(); }
     void move_down() { m_movement.y = -1.0f; face_down(); }
     
@@ -104,7 +123,6 @@ public:
     EntityType const get_entity_type()    const { return m_entity_type;   };
     AIType     const get_ai_type()        const { return m_ai_type;       };
     AIState    const get_ai_state()       const { return m_ai_state;      };
-    float const get_jumping_power() const { return m_jumping_power; }
     glm::vec3 const get_position()     const { return m_position; }
     glm::vec3 const get_velocity()     const { return m_velocity; }
     glm::vec3 const get_acceleration() const { return m_acceleration; }
@@ -116,6 +134,8 @@ public:
     bool      const get_collided_bottom() const { return m_collided_bottom; }
     bool      const get_collided_right() const { return m_collided_right; }
     bool      const get_collided_left() const { return m_collided_left; }
+    bool      const get_is_active() const { return m_is_active; }
+    bool      const get_is_gameover() const { return game_lose; }
     
     void activate()   { m_is_active = true;  };
     void deactivate() { m_is_active = false; };
@@ -139,6 +159,8 @@ public:
     void const set_width(float new_width) {m_width = new_width; }
     void const set_height(float new_height) {m_height = new_height; }
 
+    AnimationDirection get_facing_direction() const { return m_facing_direction; }
+    
     // Setter for m_walking
     void set_walking(int walking[4][3])
     {

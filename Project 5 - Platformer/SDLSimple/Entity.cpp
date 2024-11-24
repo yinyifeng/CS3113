@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Platformer
+* Date due: 2023-11-23, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #define GL_SILENCE_DEPRECATION
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -13,7 +23,13 @@
 #include "ShaderProgram.h"
 #include "Entity.h"
 
-void Entity::ai_activate(Entity *player)
+// helper function to print vectors for testing/debugging
+void printl_vec3(const glm::vec3& vec)
+{
+    std::cout << "(" << vec.x << ", " << vec.y << ", " << vec.z << ")" << std::endl;
+}
+
+void Entity::ai_activate(Entity *player, float delta_time)
 {
     switch (m_ai_type)
     {
@@ -23,6 +39,14 @@ void Entity::ai_activate(Entity *player)
             
         case GUARD:
             ai_guard(player);
+            break;
+            
+        case JUMPER:
+            ai_jump();
+            break;
+            
+        case ROTATOR:
+            ai_rotate(delta_time);
             break;
             
         default:
@@ -35,6 +59,31 @@ void Entity::ai_walk()
     m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
 }
 
+void Entity::ai_jump() {
+    if (m_collided_bottom) {
+            jump();
+    }
+    
+//    print1_vec3(m_position);
+//    std::cout << "Collided Bottom: " << m_collided_bottom
+//              << ", Is Jumping: " << m_is_jumping << std::endl;
+
+}
+
+void Entity::ai_rotate(float delta_time) {
+    m_animation_time += delta_time;
+    if (m_animation_time >= 1.0f) { // Change frame every 1 seconds
+        m_animation_time = 0.0f;
+        m_rotation_frame = (m_rotation_frame + 1) % 3; // Cycle through 3 frames
+        if (m_rotation_frame == 0) face_up();
+        if (m_rotation_frame == 1) face_right();
+        if (m_rotation_frame == 2) face_down();
+        if (m_rotation_frame == 3) face_left();
+    }
+
+}
+
+
 void Entity::ai_guard(Entity *player)
 {
     switch (m_ai_state) {
@@ -44,8 +93,10 @@ void Entity::ai_guard(Entity *player)
             
         case WALKING:
             if (m_position.x > player->get_position().x) {
+                face_left();
                 m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
             } else {
+                face_right();
                 m_movement = glm::vec3(1.0f, 0.0f, 0.0f);
             }
             break;
@@ -57,6 +108,7 @@ void Entity::ai_guard(Entity *player)
             break;
     }
 }
+
 // Default constructor
 Entity::Entity()
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
@@ -95,6 +147,8 @@ Entity::Entity(GLuint texture_id, float speed,  float width, float height, Entit
     for (int i = 0; i < SECONDS_PER_FRAME; ++i)
         for (int j = 0; j < SECONDS_PER_FRAME; ++j) m_walking[i][j] = 0;
 }
+
+
 Entity::Entity(GLuint texture_id, float speed, float width, float height, EntityType EntityType, AIType AIType, AIState AIState): m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
 m_speed(speed), m_animation_cols(0), m_animation_frames(0), m_animation_index(0),
 m_animation_rows(0), m_animation_indices(nullptr), m_animation_time(0.0f),
@@ -147,6 +201,8 @@ void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint textu
 
 bool const Entity::check_collision(Entity* other) const
 {
+    if (!m_is_active || !other->m_is_active) return false;
+    
     float x_distance = fabs(m_position.x - other->m_position.x) - ((m_width + other->m_width) / 2.0f);
     float y_distance = fabs(m_position.y - other->m_position.y) - ((m_height + other->m_height) / 2.0f);
 
@@ -158,6 +214,8 @@ void const Entity::check_collision_y(Entity *collidable_entities, int collidable
     for (int i = 0; i < collidable_entity_count; i++)
     {
         Entity *collidable_entity = &collidable_entities[i];
+        
+        if (!collidable_entity->m_is_active) continue; // skips checking collisions for inactive enemies
         
         if (check_collision(collidable_entity))
         {
@@ -177,6 +235,14 @@ void const Entity::check_collision_y(Entity *collidable_entities, int collidable
 
                 // Collision!
                 m_collided_bottom  = true;
+                
+                // Deactivate the collidable entity (e.g., an enemy)
+                collidable_entity->deactivate();
+
+                // bounce after player jumps on enemy
+//                jump();
+            }else{
+                game_lose = true;
             }
         }
     }
@@ -200,6 +266,10 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
                 // Collision!
                 m_collided_right  = true;
                 
+                if(m_entity_type == PLAYER && collidable_entity->m_entity_type == ENEMY){
+                    collidable_entity->deactivate(); // deactivate enemy
+                }
+                
             } else if (m_velocity.x < 0)
             {
                 m_position.x    += x_overlap;
@@ -207,10 +277,14 @@ void const Entity::check_collision_x(Entity *collidable_entities, int collidable
  
                 // Collision!
                 m_collided_left  = true;
+                if(m_entity_type == PLAYER && collidable_entity->m_entity_type == ENEMY){
+                    collidable_entity->deactivate(); // deactivate enemy
+                }
             }
         }
     }
 }
+
 
 void const Entity::check_collision_y(Map *map)
 {
@@ -291,6 +365,7 @@ void const Entity::check_collision_x(Map *map)
         m_collided_right = true;
     }
 }
+
 void Entity::update(float delta_time, Entity *player, Entity *collidable_entities, int collidable_entity_count, Map *map)
 {
     if (!m_is_active) return;
@@ -300,7 +375,7 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
     m_collided_left   = false;
     m_collided_right  = false;
     
-    if (m_entity_type == ENEMY) ai_activate(player);
+    if (m_entity_type == ENEMY) ai_activate(player, delta_time);
     
     if (m_animation_indices != NULL)
     {
@@ -325,20 +400,19 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
     m_velocity.x = m_movement.x * m_speed;
     m_velocity += m_acceleration * delta_time;
     
-    if (m_is_jumping)
-    {
-        m_is_jumping = false;
-        m_velocity.y += m_jumping_power;
-    }
-    
     m_position.y += m_velocity.y * delta_time;
-    
     check_collision_y(collidable_entities, collidable_entity_count);
     check_collision_y(map);
     
     m_position.x += m_velocity.x * delta_time;
     check_collision_x(collidable_entities, collidable_entity_count);
     check_collision_x(map);
+    
+    if (m_is_jumping)
+    {
+        m_is_jumping = false;
+        m_velocity.y += m_jumping_power;
+    }
     
     m_model_matrix = glm::mat4(1.0f);
     m_model_matrix = glm::translate(m_model_matrix, m_position);
@@ -347,6 +421,14 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
 
 void Entity::render(ShaderProgram* program)
 {
+    if (!m_is_active) return;
+    
+    m_model_matrix = glm::mat4(1.0f);
+    m_model_matrix = glm::translate(m_model_matrix, m_position);
+
+    // Scaling for visual size, without affecting the collision
+    m_model_matrix = glm::scale(m_model_matrix, glm::vec3(m_init_scale, m_init_scale, 1.0f));
+    
     program->set_model_matrix(m_model_matrix);
 
     if (m_animation_indices != NULL)

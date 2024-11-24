@@ -1,3 +1,13 @@
+/**
+* Author: [Yinyi Feng]
+* Assignment: Platformer
+* Date due: 2023-11-23, 11:59pm
+* I pledge that I have completed this assignment without
+* collaborating with anyone else, in conformance with the
+* NYU School of Engineering Policies and Procedures on
+* Academic Misconduct.
+**/
+
 #pragma once
 #define GL_SILENCE_DEPRECATION
 
@@ -29,6 +39,7 @@ struct GameState
     // ————— AUDIO ————— //
     Mix_Music *bgm;
     Mix_Chunk *jump_sfx;
+    Mix_Chunk *lvl_up;
     
     // ————— POINTERS TO OTHER SCENES ————— //
     int next_scene_id;
@@ -48,11 +59,10 @@ public:
     virtual void render(ShaderProgram *program) = 0;
     
     // ————— GETTERS ————— //
-//    GameState const get_state() const { return m_game_state;             }
     // Return a reference to m_game_state for modification
-        GameState& get_state() { return m_game_state; }
+    GameState& get_state() { return m_game_state; }
 
-        // Return a const reference for read-only access
-        const GameState& get_state() const { return m_game_state; }
+    // Return a const reference for read-only access
+    const GameState& get_state() const { return m_game_state; }
     int const get_number_of_enemies() const { return m_number_of_enemies; }
 };
