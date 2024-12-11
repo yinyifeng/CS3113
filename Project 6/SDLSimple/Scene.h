@@ -1,7 +1,7 @@
 /**
 * Author: [Yinyi Feng]
-* Assignment: Platformer
-* Date due: 2023-11-23, 11:59pm
+* Assignment: The Glitch
+* Date due: 2024-12-11, 2:00pm
 * I pledge that I have completed this assignment without
 * collaborating with anyone else, in conformance with the
 * NYU School of Engineering Policies and Procedures on
@@ -36,11 +36,15 @@ struct GameState
     Entity *player;
     Entity *enemies;
     Entity *coins;
+    Entity *arrow;
     
     // ————— AUDIO ————— //
     Mix_Music *bgm;
     Mix_Chunk *jump_sfx;
     Mix_Chunk *lvl_up;
+    
+    Mix_Chunk *coin_sfx;
+    Mix_Chunk *damage_sfx;
     
     // ————— POINTERS TO OTHER SCENES ————— //
     int next_scene_id;

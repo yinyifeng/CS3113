@@ -88,32 +88,6 @@ void Map::render(ShaderProgram *program)
     glDisableVertexAttribArray(program->get_tex_coordinate_attribute());
 }
 
-//bool Map::is_solid(glm::vec3 position, float *penetration_x, float *penetration_y) {
-//    int tile_x = (int)floor(position.x / m_tile_size);
-//    int tile_y = (int)floor(-position.y / m_tile_size); // Adjust for OpenGL's coordinate system
-//
-//    // Check bounds
-//    if (tile_x < 0 || tile_x >= m_width || tile_y < 0 || tile_y >= m_height) {
-//        return false; // Out of bounds tiles are non-solid
-//    }
-//
-//    int tile = m_level_data[tile_y * m_width + tile_x];
-//    std::cout << "Checking tile: " << tile << " at (" << tile_x << ", " << tile_y << ")\n";
-//
-//    for (unsigned int non_collidable : NON_COLLIDABLE_TILES) {
-//        if (tile == non_collidable) {
-//            std::cout << "Tile " << tile << " is non-collidable.\n";
-//            return false;
-//        }
-//    }
-//
-//    // If not in non-collidable, it's solid
-//    std::cout << "Tile " << tile << " is solid.\n";
-//    if (penetration_x) *penetration_x = fabs(position.x - (tile_x + 0.5f) * m_tile_size) - (0.5f * m_tile_size);
-//    if (penetration_y) *penetration_y = fabs(position.y + (tile_y + 0.5f) * m_tile_size) - (0.5f * m_tile_size);
-//    return true;
-//}
-
 bool Map::is_solid(glm::vec3 position, float* penetration_x, float* penetration_y) {
     constexpr float epsilon = 0.0001f;
     *penetration_x = 0;
@@ -128,11 +102,8 @@ bool Map::is_solid(glm::vec3 position, float* penetration_x, float* penetration_
     if (tile_x < 0 || tile_x >= m_width) return false;
     if (tile_y < 0 || tile_y >= m_height) return false;
 
-    // Check the first layer
     int tile = m_level_data[tile_y * m_width + tile_x];
 
-    // Define the set of solid tiles
-//    const std::set<int> solid_tiles = {1, 9, 46, 57, 11, 68, 69, 31, 53, 29, 72, 73, 74, 75, 27, 23, 67, 54, 65, 40, 19, 20, 18, 39, 30};
     const std::set<int> solid_tiles = {1, 9, 46, 11, 68, 69, 31, 29, 72, 73, 74, 75, 27, 67, 54, 57, 65, 40, 19, 39, 30};
 
     if (solid_tiles.find(tile) != solid_tiles.end()) {

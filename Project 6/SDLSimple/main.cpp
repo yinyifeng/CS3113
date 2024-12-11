@@ -124,7 +124,7 @@ void initialise()
 {
     // ————— VIDEO ————— //
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-    g_display_window = SDL_CreateWindow("The Platformer",
+    g_display_window = SDL_CreateWindow("The Glitch",
                                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                       WINDOW_WIDTH, WINDOW_HEIGHT,
                                       SDL_WINDOW_OPENGL);
@@ -269,7 +269,7 @@ void update() {
         } else if (typeid(*g_current_scene) == typeid(LevelB)) {
             lightRadius = 3.0f; // Smaller radius for Level B
         } else if (typeid(*g_current_scene) == typeid(LevelC)) {
-            lightRadius = 1.5f; // Large radius for Level C
+            lightRadius = 1.0f; // Large radius for Level C
         }
 
         // Update the uniform in the shader
@@ -345,21 +345,38 @@ void update() {
         }
     }
 
-    if (g_current_scene->get_state().enemies) {
-        for (int i = 0; i < 1; i++) {
-            Entity& enemy = g_current_scene->get_state().enemies[i];
-            if (enemy.get_is_active() && g_current_scene->get_state().player->check_collision(&enemy)) {
-                enemy.deactivate();
-                Mix_PlayChannel(-1, g_damage_sfx, 0);
-                gameover = true;
-                g_level_lost = new GameLost();
-                switch_to_scene(g_level_lost);
-                return;
+    // ————— COLLISION LOGIC ————— //
+    if (g_current_scene && g_current_scene->get_state().player) {
+        // checks if we are in a level
+        if (typeid(*g_current_scene) == typeid(LevelA) ||
+            typeid(*g_current_scene) == typeid(LevelB) ||
+            typeid(*g_current_scene) == typeid(LevelC)) {
+            
+            // iterates through 3 enemies
+            for (int i = 0; i < 3; i++) {
+                Entity& enemy = g_current_scene->get_state().enemies[i];
+                
+                // checks collisions with active enemies
+                if (enemy.get_is_active() && g_current_scene->get_state().player->check_collision(&enemy)) {
+                    std::cout << "Collision detected! Lives before decrement: " << lives << std::endl;
+                    enemy.deactivate();
+                    Mix_PlayChannel(-1, g_damage_sfx, 0);   // Play damage sfx when hit
+                    lives--;
+                    std::cout << "Lives after decrement: " << lives << std::endl;
+
+                    if (lives <= 0) {
+                        gameover = true;
+                        g_level_lost = new GameLost();
+                        switch_to_scene(g_level_lost); // Render game lost screen when all lives = 0
+                        return;
+                    }
+                }
+
             }
         }
     }
 
-    print_vec3(g_current_scene->get_state().player->get_position());
+//    print_vec3(g_current_scene->get_state().player->get_position());
 }
 
 
@@ -374,19 +391,19 @@ void render()
     // Render the current scene (e.g., player, enemies, map)
     g_current_scene->render(&g_shader_program);
     
-//    // Reset view matrix for lives text rendering
-//    glm::mat4 temp_view_matrix = glm::mat4(1.0f);
-//    g_shader_program.set_view_matrix(temp_view_matrix);
-//
-//    // Render the Lives text at the top-left corner
-//    Utility::draw_text(
-//        &g_shader_program,
-//        Utility::load_texture("assets/font1.png"),
-//        "Lives: " + std::to_string(lives),
-//        0.3f,                        // Text size
-//        0.0f,                        // Spacing between characters
-//        glm::vec3(-4.5f, 3.5f, 0.0f) // coordinates for top-left corner
-//    );
+    // Reset view matrix for lives text rendering
+    glm::mat4 temp_view_matrix = glm::mat4(1.0f);
+    g_shader_program.set_view_matrix(temp_view_matrix);
+
+    // Render the Lives text at the top-left corner
+    Utility::draw_text(
+        &g_shader_program,
+        Utility::load_texture("assets/font1.png"),
+        "Lives: " + std::to_string(lives),
+        0.3f,                        // Text size
+        0.0f,                        // Spacing between characters
+        glm::vec3(2.5f, 3.5f, 0.0f) // coordinates for top-left corner
+    );
 
     // Restore the main view matrix for game rendering
     g_shader_program.set_view_matrix(g_view_matrix);

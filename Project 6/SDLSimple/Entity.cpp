@@ -1,7 +1,7 @@
 /**
 * Author: [Yinyi Feng]
-* Assignment: Platformer
-* Date due: 2023-11-23, 11:59pm
+* Assignment: The Glitch
+* Date due: 2024-12-11, 2:00pm
 * I pledge that I have completed this assignment without
 * collaborating with anyone else, in conformance with the
 * NYU School of Engineering Policies and Procedures on
@@ -90,15 +90,21 @@ void Entity::ai_jump() {
 }
 
 void Entity::ai_rotate(float delta_time) {
-    m_animation_time += delta_time;
-    if (m_animation_time >= 1.0f) { // Change frame every 1 seconds
-        m_animation_time = 0.0f;
-        m_rotation_frame = (m_rotation_frame + 1) % 3; // Cycle through 3 frames
-        if (m_rotation_frame == 0) face_up();
-        if (m_rotation_frame == 1) face_right();
-        if (m_rotation_frame == 2) face_down();
-        if (m_rotation_frame == 3) face_left();
-    }
+//    m_animation_time += delta_time;
+//    if (m_animation_time >= 1.0f) { // Change frame every 1 seconds
+//        m_animation_time = 0.0f;
+//        m_rotation_frame = (m_rotation_frame + 1) % 3; // Cycle through 3 frames
+//        if (m_rotation_frame == 0) face_up();
+//        if (m_rotation_frame == 1) face_right();
+//        if (m_rotation_frame == 2) face_down();
+//        if (m_rotation_frame == 3) face_left();
+//    }
+    m_angle += m_orbit_speed * delta_time;
+    if (m_angle >= 360.0f) m_angle -= 360.0f;
+
+    // Update position based on the angle
+    m_position.x = m_orbit_center.x + m_orbit_radius * cos(glm::radians(m_angle));
+    m_position.y = m_orbit_center.y + m_orbit_radius * sin(glm::radians(m_angle));
 
 }
 
@@ -126,10 +132,8 @@ void Entity::ai_guard(Entity *player)
         default:
             break;
     }
-    std::cout << "Enemy position: " << m_position.x << ", Player position: " << player->get_position().x << std::endl;
+//    std::cout << "Enemy position: " << m_position.x << ", Player position: " << player->get_position().x << std::endl;
 }
-
-
 
 
 // Default constructor

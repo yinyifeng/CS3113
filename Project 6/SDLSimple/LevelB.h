@@ -1,7 +1,7 @@
 /**
 * Author: [Yinyi Feng]
-* Assignment: Platformer
-* Date due: 2023-11-23, 11:59pm
+* Assignment: The Glitch
+* Date due: 2024-12-11, 2:00pm
 * I pledge that I have completed this assignment without
 * collaborating with anyone else, in conformance with the
 * NYU School of Engineering Policies and Procedures on
@@ -12,6 +12,7 @@
 
 class LevelB : public Scene {
     glm::mat4 m_view_matrix;
+    bool played = false;
 public:
     // ————— STATIC ATTRIBUTES ————— //
     int ENEMY_COUNT = 3;

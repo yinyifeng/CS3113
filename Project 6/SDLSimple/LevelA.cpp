@@ -1,7 +1,7 @@
 /**
 * Author: [Yinyi Feng]
-* Assignment: Platformer
-* Date due: 2023-11-23, 11:59pm
+* Assignment: The Glitch
+* Date due: 2024-12-11, 2:00pm
 * I pledge that I have completed this assignment without
 * collaborating with anyone else, in conformance with the
 * NYU School of Engineering Policies and Procedures on
@@ -16,7 +16,7 @@
 
 constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight_2.png",
                TILESET_FILEPATH[]       = "assets/dungeon.png",
-               ENEMY_FILEPATH[]         = "assets/piplup.png",
+               ENEMY_FILEPATH[]         = "assets/skeleton.png",
                COIN_FILEPATH[]          = "assets/coin.png";
 
 unsigned int LEVELA_DATA[] =
@@ -55,9 +55,10 @@ unsigned int LEVELA_DATA[] =
 LevelA::~LevelA()
 {
     delete [] m_game_state.enemies;
+    delete [] m_game_state.coins;
     delete    m_game_state.player;
     delete    m_game_state.map;
-    Mix_FreeChunk(m_game_state.jump_sfx);
+    Mix_FreeChunk(m_game_state.coin_sfx);
     Mix_FreeChunk(m_game_state.lvl_up);
     Mix_FreeMusic(m_game_state.bgm);
 }
@@ -97,51 +98,48 @@ void LevelA::initialise()
     
     m_game_state.player->set_position(glm::vec3(8.0f, -1.5f, 0.0f));
 
-    // Jumping
-//    m_game_state.player->set_jumping_power(5.0f);
     
-    m_game_state.enemies = nullptr;
+    GLuint enemy_texture_id = Utility::load_texture(ENEMY_FILEPATH);
     
-//    /**
-//     Enemies' stuff */
-//    GLuint enemy_texture_id = Utility::load_texture(ENEMY_FILEPATH);
-//
-//    int enemy_walking_animation[4][3] =
-//    {
-//        { 3, 7, 11 },  // for Enemy to move to the left,
-//        { 1, 5, 9  },  // for Enemy to move to the right,
-//        { 0, 4, 8  },  // for Enemy to move upwards,
-//        { 2, 6, 10 }   // for Enemy to move downwards
-//    };
-//
-//    m_game_state.enemies = new Entity[ENEMY_COUNT];
-//
-//    for (int i = 0; i < ENEMY_COUNT; i++)
-//    {
-//    m_game_state.enemies[i] =  Entity(enemy_texture_id, 0.5f, acceleration, 0.1f, enemy_walking_animation, 0.0f, 3, 0, 4, 3, 0.25f, 0.7f, ENEMY);
-//    m_game_state.enemies[i].set_movement(glm::vec3(0.0f));
-//    m_game_state.enemies[i].face_down();
-//    }
-//
-//    m_game_state.enemies[0].set_position(glm::vec3(16.0f, -3.5f, 0.0f));
-//    m_game_state.enemies[0].set_ai_type(JUMPER);
-//    m_game_state.enemies[0].set_jumping_power(2.0f);
-//
-//    m_game_state.enemies[1].set_position(glm::vec3(9.0f, -5.15f, 0.0f));
-//    m_game_state.enemies[1].set_ai_type(GUARD);
-//    m_game_state.enemies[1].set_ai_state(IDLE);
-//    m_game_state.enemies[1].set_speed(0.5f);
+    int enemy_walking_animation[4][4] =
+    {
+        { 3, 7, 11, 15},  // for Player to move to the left,
+        { 2, 6, 10, 14},  // for Player to move to the right,
+        { 0, 4,  8, 12},  // for Player to move upwards,
+        { 1, 5,  9, 13}   // for Player to move downwards
+    };
+
+    m_game_state.enemies = new Entity[ENEMY_COUNT];
+
+    for (int i = 0; i < ENEMY_COUNT; i++)
+    {
+    m_game_state.enemies[i] =  Entity(enemy_texture_id, 0.5f, acceleration, 0.0f, enemy_walking_animation, 0.0f, 4, 0, 4, 4, 0.1f, 0.1f, ENEMY);
+    m_game_state.enemies[i].set_movement(glm::vec3(0.0f));
+    }
+
+    m_game_state.enemies[0].set_position(glm::vec3(5.0f, -4.5f, 0.0f));
+    m_game_state.enemies[0].set_ai_type(GUARD);
+    m_game_state.enemies[0].set_ai_state(IDLE);
+    
+    m_game_state.enemies[1].set_position(glm::vec3(10.5f, -5.0f, 0.0f));
+    m_game_state.enemies[1].set_ai_type(WALKER);
+    m_game_state.enemies[1].set_ai_state(WALKING);
+    
+    m_game_state.enemies[2].set_position(glm::vec3(12.5f, -3.5f, 0.0f));
+    m_game_state.enemies[2].set_ai_type(GUARD);
+    m_game_state.enemies[2].set_ai_state(IDLE);
+
 
     /**
      BGM and SFX
      */
-//    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
-//
-//    m_game_state.bgm = Mix_LoadMUS("assets/bg_music.mp3");
-//    Mix_PlayMusic(m_game_state.bgm, -1);
-//
-//    m_game_state.jump_sfx = Mix_LoadWAV("assets/jump.wav");
-//    m_game_state.lvl_up = Mix_LoadWAV("assets/lvlup.wav");
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+
+    m_game_state.bgm = Mix_LoadMUS("assets/bg_music.mp3");
+    Mix_PlayMusic(m_game_state.bgm, -1);
+
+    m_game_state.coin_sfx = Mix_LoadWAV("assets/coin.mp3");
+    m_game_state.lvl_up = Mix_LoadWAV("assets/unlocked.mp3");
     
     m_game_state.coins = new Entity[COINS_COUNT];
     GLuint coin_texture_id = Utility::load_texture(COIN_FILEPATH);
@@ -150,10 +148,10 @@ void LevelA::initialise()
     {
         m_game_state.coins[i] =  Entity(coin_texture_id, 0.0f, 0.5f, 0.5f, COIN);
         m_game_state.coins[i].set_scale(glm::vec3(0.3f));
-        std::cout << "Coin " << i << " scale: ("
-                  << m_game_state.coins[i].get_scale().x << ", "
-                  << m_game_state.coins[i].get_scale().y << ", "
-                  << m_game_state.coins[i].get_scale().z << ")" << std::endl;
+//        std::cout << "Coin " << i << " scale: ("
+//                  << m_game_state.coins[i].get_scale().x << ", "
+//                  << m_game_state.coins[i].get_scale().y << ", "
+//                  << m_game_state.coins[i].get_scale().z << ")" << std::endl;
 
     }
     
@@ -175,26 +173,25 @@ void LevelA::update(float delta_time) {
     if (player_position.x < 0.5f) {
         player_position.x = 0.5f;
     }
-    if (player_position.x > LEVELA_WIDTH * 0.5f) {  // Adjust to allow full movement to the end of the level
+    if (player_position.x > LEVELA_WIDTH * 0.5f) {
         player_position.x = LEVELA_WIDTH * 0.5f;
     }
 
     if (player_position.y > -0.5f) {
-        player_position.y = -0.5f;  // Prevent the player from going above a certain height
+        player_position.y = -0.5f;
     }
-    if (player_position.y < -LEVELA_HEIGHT * 0.5f) {  // Prevent the player from falling below the level
+    if (player_position.y < -LEVELA_HEIGHT * 0.5f) {
         player_position.y = -LEVELA_HEIGHT * 0.5f;
     }
 
     m_game_state.player->set_position(player_position);
 
-    // Define camera boundaries for X and Y directions
-    float left_boundary = 4.0f;                        // Adjust X left boundary
-    float right_boundary = (LEVELA_WIDTH * 0.5f) - 5.0f; // Adjust X right boundary based on level width
-    float bottom_boundary = -(LEVELA_HEIGHT * 0.5f) + 3.5f; // Y bottom boundary
-    float top_boundary = 0.0f;                        // Y top boundary
+    float left_boundary = 4.0f;
+    float right_boundary = (LEVELA_WIDTH * 0.5f) - 5.0f;
+    float bottom_boundary = -(LEVELA_HEIGHT * 0.5f) + 3.5f;
+    float top_boundary = 0.0f;
 
-    // Adjust the camera position to follow the player within boundaries
+    // Adjust camera position based on player
     float camera_x = player_position.x;
     float camera_y = player_position.y;
 
@@ -210,42 +207,45 @@ void LevelA::update(float delta_time) {
         camera_y = top_boundary;
     }
 
-    // Update the view matrix to center the camera on the player
+    // Update view matrix
     m_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-camera_x, -camera_y, 0));
+    
+    for (int i = 0; i < ENEMY_COUNT; i++)
+    {
 
-    // Debug logs to confirm camera and player positions
-    std::cout << "Player Position: X = " << player_position.x << ", Y = " << player_position.y << std::endl;
-    std::cout << "Camera Position: X = " << camera_x << ", Y = " << camera_y << std::endl;
-
-    // Coin collection logic (unchanged)
+        m_game_state.enemies[i].ai_activate(m_game_state.player, delta_time);
+        if (m_game_state.enemies[i].get_is_active()) {
+            m_game_state.enemies[i].update(delta_time, m_game_state.player, NULL, 0, m_game_state.map);
+        }
+    }
+    
+    // Coin
     for (int i = 0; i < COINS_COUNT; i++) {
         if (m_game_state.coins[i].get_is_active() &&
             m_game_state.player->check_collision(&m_game_state.coins[i])) {
             m_game_state.coins[i].deactivate();
             m_coins_collected++;
-            std::cout << "Coin collected! Total: " << m_coins_collected << std::endl;
+            Mix_PlayChannel(-1, m_game_state.coin_sfx, 0);
         }
     }
 
-    // Check for all coins collected
+    // Check if all coins have been collected
     if (m_coins_collected == COINS_COUNT) {
         LEVELA_DATA[17 * LEVELA_WIDTH + 26] = 84;
         m_game_state.map->build();
-        std::cout << "All coins collected! Tile 50 has appeared." << std::endl;
+        if (!played){
+            Mix_PlayChannel(-1, m_game_state.lvl_up, 0);
+            played = true;
+        }
     }
 
     // Check for collision with tile 50
     glm::vec3 tile_50_position = glm::vec3(26 * 0.5f, -17 * 0.5f, 0.0f);
     if (m_coins_collected == COINS_COUNT &&
         glm::distance(m_game_state.player->get_position(), tile_50_position) < 0.25f) {
-        std::cout << "Player collided with tile 50! Transitioning to LevelC." << std::endl;
         m_game_state.next_scene_id = 2;
     }
 }
-
-
-
-
 
 
 void LevelA::render(ShaderProgram *g_shader_program) {
@@ -258,6 +258,12 @@ void LevelA::render(ShaderProgram *g_shader_program) {
     // Render the map and player
     m_game_state.map->render(g_shader_program);
     m_game_state.player->render(g_shader_program);
+    
+    for (int i = 0; i < ENEMY_COUNT; i++) {
+        if (m_game_state.enemies[i].get_is_active()) {
+            m_game_state.enemies[i].render(g_shader_program);
+        }
+    }
 
     // Render all active coins
     for (int i = 0; i < COINS_COUNT; i++) {
@@ -282,4 +288,3 @@ void LevelA::render(ShaderProgram *g_shader_program) {
     // Restore the main view matrix for game rendering
     g_shader_program->set_view_matrix(m_view_matrix);
 }
-
