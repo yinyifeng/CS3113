@@ -157,11 +157,11 @@ void LevelC::initialise()
 
     }
     
-    m_game_state.coins[0].set_position(glm::vec3(2.5f, -6.5f, 0.0f));
-    m_game_state.coins[1].set_position(glm::vec3(3.5f, -2.5f, 0.0f));
-    m_game_state.coins[2].set_position(glm::vec3(8.5f, -1.5f, 0.0f));
-    m_game_state.coins[3].set_position(glm::vec3(8.05f, -5.4f, 0.0f));
-    m_game_state.coins[4].set_position(glm::vec3(10.0f, -3.5f, 0.0f));
+    m_game_state.coins[0].set_position(glm::vec3(9.5f, -1.5f, 0.0f));
+    m_game_state.coins[1].set_position(glm::vec3(11.0f, -8.5f, 0.0f));
+    m_game_state.coins[2].set_position(glm::vec3(6.5f, -3.5f, 0.0f));
+    m_game_state.coins[3].set_position(glm::vec3(11.0f, -5.4f, 0.0f));
+    m_game_state.coins[4].set_position(glm::vec3(15.5f, -5.0f, 0.0f));
     
 }
 

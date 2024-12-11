@@ -14,8 +14,8 @@ class LevelA : public Scene {
     glm::mat4 m_view_matrix;
 public:
     // ————— STATIC ATTRIBUTES ————— //
-    int ENEMY_COUNT = 1;
-    int COINS_COUNT = 5;
+    int ENEMY_COUNT = 3;
+    int COINS_COUNT = 3;
     int m_coins_collected = 0;
     
     // ————— DESTRUCTOR ————— //

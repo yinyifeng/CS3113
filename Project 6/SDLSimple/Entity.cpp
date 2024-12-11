@@ -56,7 +56,26 @@ void Entity::ai_activate(Entity *player, float delta_time)
 
 void Entity::ai_walk()
 {
-    m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
+
+    if (m_ai_state != WALKING) return;
+
+    if (m_movement.x < 0) { // Moving left
+        m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
+        face_left();
+    } else { // Moving right
+        m_movement = glm::vec3(1.0f, 0.0f, 0.0f);
+        face_right();
+    }
+
+    // Flip direction if a collision (into a wall) is detected
+    if (m_collided_left) {
+        m_movement.x = 1.0f;  // move right
+        face_right();
+    } else if (m_collided_right) {
+        m_movement.x = -1.0f; // move left
+        face_left();
+    }
+    
 }
 
 void Entity::ai_jump() {

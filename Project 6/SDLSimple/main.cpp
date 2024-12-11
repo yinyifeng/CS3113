@@ -54,11 +54,11 @@ constexpr int VIEWPORT_X = 0,
           VIEWPORT_WIDTH  = WINDOW_WIDTH,
           VIEWPORT_HEIGHT = WINDOW_HEIGHT;
 
-constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
-               F_SHADER_PATH[] = "shaders/fragment_textured.glsl";
+//constexpr char V_SHADER_PATH[] = "shaders/vertex_textured.glsl",
+//               F_SHADER_PATH[] = "shaders/fragment_textured.glsl";
 
-//constexpr char V_SHADER_PATH[] = "shaders/vertex_lit.glsl",
-//           F_SHADER_PATH[] = "shaders/fragment_lit.glsl";
+constexpr char V_SHADER_PATH[] = "shaders/vertex_lit.glsl",
+           F_SHADER_PATH[] = "shaders/fragment_lit.glsl";
 
 constexpr char DAMAGE_FILEPATH[] = "assets/damage.mp3";
 
@@ -92,6 +92,7 @@ constexpr int CD_QUAL_FREQ    = 44100,  // CD quality
 
 int lives = 3;
 bool gameover = false;
+bool flashlight_enabled = false;
 
 SDL_Window* g_display_window;
 
@@ -168,11 +169,11 @@ void initialise()
     Mix_VolumeChunk(g_damage_sfx, MIX_MAX_VOLUME / 2);
     
     // ————— MENU SETUP ————— //
-//    g_level_menu = new Menu();
-//    switch_to_scene(g_level_menu);
+    g_level_menu = new Menu();
+    switch_to_scene(g_level_menu);
     
-    g_level_a = new LevelA();
-    switch_to_scene(g_level_a);
+//    g_level_a = new LevelA();
+//    switch_to_scene(g_level_a);
     
 //    g_level_b = new LevelB();
 //    switch_to_scene(g_level_b);
@@ -227,6 +228,11 @@ void process_input()
                         if (g_current_scene == g_level_menu){
                             g_current_scene->get_state().next_scene_id = 1;
                         }
+                        break;
+                    case SDLK_c:
+                        // Toggle spotlight when pressing 'C'
+                        flashlight_enabled = !flashlight_enabled;
+                        break;
                         
                     default:
                         break;
@@ -252,82 +258,81 @@ void process_input()
 }
 
 void update() {
-    // ————— DELTA TIME / FIXED TIME STEP CALCULATION ————— //
     float ticks = (float)SDL_GetTicks() / MILLISECONDS_IN_SECOND;
     float delta_time = ticks - g_previous_ticks;
     g_previous_ticks = ticks;
     
+    // Determine the light radius based on the current level
+        float lightRadius = 1.0f; // Default radius
+        if (typeid(*g_current_scene) == typeid(LevelA)) {
+            lightRadius = 5.0f; // Increase radius for Level A
+        } else if (typeid(*g_current_scene) == typeid(LevelB)) {
+            lightRadius = 3.0f; // Smaller radius for Level B
+        } else if (typeid(*g_current_scene) == typeid(LevelC)) {
+            lightRadius = 1.5f; // Large radius for Level C
+        }
+
+        // Update the uniform in the shader
+        GLuint lightRadiusLoc = glGetUniformLocation(g_shader_program.get_program_id(), "lightRadius");
+        glUniform1f(lightRadiusLoc, lightRadius);
+
+//    if (lightRadiusLoc == -1) {
+//        std::cerr << "Error: 'lightRadius' uniform not found in the shader!" << std::endl;
+//    } else {
+//        glUniform1f(lightRadiusLoc, lightRadius);
+//        std::cout << "lightRadius set to: " << lightRadius << std::endl;
+//    }
+
+
     delta_time += g_accumulator;
-    
+
     if (delta_time < FIXED_TIMESTEP) {
         g_accumulator = delta_time;
         return;
     }
-    
+
     while (delta_time >= FIXED_TIMESTEP) {
         if (g_current_scene) g_current_scene->update(FIXED_TIMESTEP);
         delta_time -= FIXED_TIMESTEP;
     }
-    
+
     g_accumulator = delta_time;
 
-    // ————— PLAYER CAMERA ————— //
-//    g_view_matrix = glm::mat4(1.0f);
-//    
-//    if (g_current_scene->get_state().player) {
-//        glm::vec3 player_position = g_current_scene->get_state().player->get_position();
-//
-//        // Clamp the player's position to not go below 0.5f
-//        if (player_position.x < 0.5f) {
-//            player_position.x = 0.5f;
-//            g_current_scene->get_state().player->set_position(player_position);
-//        }
-//
-//        // Adjust the camera view matrix based on the player's position
-//        if (player_position.x > LEVEL1_LEFT_EDGE && player_position.x < LEVEL1_RIGHT_EDGE) {
-//            g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-player_position.x, 3.75, 0));
-//        } else if (player_position.x <= LEVEL1_LEFT_EDGE) {
-//            g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-LEVEL1_LEFT_EDGE, 3.75, 0));
-//        } else {
-//            g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-LEVEL1_RIGHT_EDGE, 3.75, 0));
-//        }
-//    }
-    
-    if (g_current_scene->get_state().player)
-        {
-            glm::vec3 player_pos = g_current_scene->get_state().player->get_position();
+    if (g_current_scene->get_state().player) {
+        glm::vec3 player_pos = g_current_scene->get_state().player->get_position();
 
-            // Update the view matrix to center on the player
-            float camera_x = -player_pos.x;
-            float camera_y = -player_pos.y;
-            g_view_matrix = glm::mat4(1.0f);
-            g_view_matrix = glm::translate(g_view_matrix, glm::vec3(camera_x, camera_y, 0));
+        // Update the view matrix to center on the player
+        float camera_x = -player_pos.x;
+        float camera_y = -player_pos.y;
+        g_view_matrix = glm::mat4(1.0f);
+        g_view_matrix = glm::translate(g_view_matrix, glm::vec3(camera_x, camera_y, 0));
 
-            // Set the spotlight to follow the player's position
-            g_shader_program.set_light_position_matrix(player_pos); // Ensure this function sets the light position in the shader
+        // Spotlight logic: Only update the light position if the flashlight is enabled
+        if (flashlight_enabled) {
+            g_shader_program.set_light_position_matrix(player_pos); // Spotlight follows the player
+        } else {
+            g_shader_program.set_light_position_matrix(glm::vec3(-100.0f, -100.0f, 0.0f)); // Place the light offscreen
         }
-        else
-        {
-            // Default camera and light position if no player exists
-            g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 3.75f, 0.0f));
-            g_shader_program.set_light_position_matrix(glm::vec3(0.0f, 0.0f, 0.0f)); // Default light position
-        }
-    
+    } else {
+        g_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 3.75f, 0.0f));
+        g_shader_program.set_light_position_matrix(glm::vec3(-100.0f, -100.0f, 0.0f)); // Default light offscreen
+    }
+
     if (g_current_scene->get_state().next_scene_id != -1) {
         switch (g_current_scene->get_state().next_scene_id) {
-            case 1: // Transition to LevelA
+            case 1:
                 g_level_a = new LevelA();
                 switch_to_scene(g_level_a);
                 break;
-            case 2: // Transition to LevelB
+            case 2:
                 g_level_b = new LevelB();
                 switch_to_scene(g_level_b);
                 break;
-            case 3: // Transition to LevelC
+            case 3:
                 g_level_c = new LevelC();
                 switch_to_scene(g_level_c);
                 break;
-            case 4: // Transition to GameWon
+            case 4:
                 g_level_won = new GameWon();
                 switch_to_scene(g_level_won);
                 break;
@@ -339,10 +344,8 @@ void update() {
                 break;
         }
     }
-    
-//    // ————— COLLISION LOGIC ————— //
-    if (g_current_scene->get_state().enemies)
-    {
+
+    if (g_current_scene->get_state().enemies) {
         for (int i = 0; i < 1; i++) {
             Entity& enemy = g_current_scene->get_state().enemies[i];
             if (enemy.get_is_active() && g_current_scene->get_state().player->check_collision(&enemy)) {
@@ -356,18 +359,7 @@ void update() {
         }
     }
 
-    
-//    // checks if player falls off platform(s)
-//    if (g_current_scene->get_state().player->get_position().y < -8.0f) {
-//        Mix_PlayChannel(-1, g_damage_sfx, 0);
-//        gameover = true;
-//        g_level_lost = new GameLost();
-//        switch_to_scene(g_level_lost);
-//        return;
-//    }
-
     print_vec3(g_current_scene->get_state().player->get_position());
-    g_shader_program.set_light_position_matrix(g_current_scene->get_state().player->get_position());
 }
 
 

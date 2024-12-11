@@ -120,3 +120,5 @@ void ShaderProgram::set_projection_matrix(const glm::mat4 &matrix)
     glUseProgram(m_program_id);
     glUniformMatrix4fv(m_projection_matrix_uniform, 1, GL_FALSE, &matrix[0][0]);
 }
+
+

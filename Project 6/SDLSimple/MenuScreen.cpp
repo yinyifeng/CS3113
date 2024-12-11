@@ -34,10 +34,24 @@ void Menu::update(float delta_time) {
 }
 
 void Menu::render(ShaderProgram* g_shader_program) {
-    glClearColor(0.690f, 0.710f, 0.588f, 1.0f);
+    // Set the view matrix to identity for UI rendering
+    glm::mat4 identity_matrix = glm::mat4(1.0f);
+    g_shader_program->set_view_matrix(identity_matrix);
+
+    glClearColor(0.1f, 0.5f, 0.4f, 1.0f); // Cool blue-green
+
+
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // Text properties
+    float text_size = 0.7f;
+    float text_spacing = 0.05f;
     
-    // Render "Game Title" and "Press Enter to Start"
-    Utility::draw_text(g_shader_program, g_font_texture_id, "The Glitch", 0.5f, 0.05f, glm::vec3(1.6f, -2.0f, 0.0f));
-    Utility::draw_text(g_shader_program, g_font_texture_id, "Press Enter to Start", 0.3f, 0.05f, glm::vec3(1.6f, -4.0f, 0.0f));
+    // Render "Game Over!" centered
+    Utility::draw_text(g_shader_program, g_font_texture_id, "The Glitch", text_size, text_spacing, glm::vec3(-3.3f, 2.5f, 0.0f));
+
+    // Render "You Won!" slightly below
+    Utility::draw_text(g_shader_program, g_font_texture_id, "'Enter' to Play", 0.3, text_spacing, glm::vec3(-2.8f, 0.0f, 0.0f));
+    
+    Utility::draw_text(g_shader_program, g_font_texture_id, "'C' for Light", 0.3, text_spacing, glm::vec3(-2.6f, -1.5f, 0.0f));
 }
