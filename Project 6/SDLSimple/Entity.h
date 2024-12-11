@@ -77,10 +77,11 @@ public:
     float m_init_scale = 1.0f;
     int m_rotation_frame = 0;
     
-    float m_angle = 0.0f; // Angle for circular motion
-    float m_orbit_radius = 1.0f; // Radius of the circular motion
-    glm::vec3 m_orbit_center = glm::vec3(0.0f, 0.0f, 0.0f); // Center of the orbit
-    float m_orbit_speed = 1.0f; // Speed of circular motion
+    // Variables for circular motion
+    float m_angle = 0.0f;
+    float m_orbit_radius = 1.0f;
+    glm::vec3 m_orbit_center = glm::vec3(0.0f, 0.0f, 0.0f);
+    float m_orbit_speed = 1.0f;
 
     
     // ————— METHODS ————— //

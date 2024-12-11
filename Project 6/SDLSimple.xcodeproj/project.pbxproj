@@ -42,13 +42,10 @@
 
 /* Begin PBXFileReference section */
 		A103CC212D069FA7000A0431 /* knight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = knight.png; sourceTree = "<group>"; };
-		A103CC222D06A576000A0431 /* centered_knight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = centered_knight.png; sourceTree = "<group>"; };
-		A103CC232D06AA12000A0431 /* knight_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = knight_2.png; sourceTree = "<group>"; };
 		A103CC262D06DE3D000A0431 /* dungeon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dungeon.png; sourceTree = "<group>"; };
 		A103CC272D06E780000A0431 /* Coin.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Coin.png; sourceTree = "<group>"; };
 		A103CC282D07B627000A0431 /* skeleton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = skeleton.png; sourceTree = "<group>"; };
 		A103CC292D09B827000A0431 /* arrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = arrow.png; sourceTree = "<group>"; };
-		A103CC2A2D09BC11000A0431 /* arrow (1).png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arrow (1).png"; sourceTree = "<group>"; };
 		A12A382A2CEF9B2F00567DA4 /* Scene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Scene.h; sourceTree = "<group>"; };
 		A12A382B2CEF9BD700567DA4 /* LevelB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LevelB.h; sourceTree = "<group>"; };
 		A12A382C2CEF9BE300567DA4 /* LevelB.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LevelB.cpp; sourceTree = "<group>"; };
@@ -56,12 +53,8 @@
 		A12A382F2CEFA10300567DA4 /* MenuScreen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MenuScreen.cpp; sourceTree = "<group>"; };
 		A19551552D09DFB400770619 /* coin.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = coin.mp3; sourceTree = "<group>"; };
 		A19551562D09E18600770619 /* unlocked.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = unlocked.mp3; sourceTree = "<group>"; };
-		A1A2761A2CF07A84005862BD /* ash_ketchup.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ash_ketchup.png; sourceTree = "<group>"; };
-		A1A2761B2CF08415005862BD /* tilesheet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tilesheet.png; sourceTree = "<group>"; };
-		A1A2761C2CF09A44005862BD /* extended_tilesheet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = extended_tilesheet.png; sourceTree = "<group>"; };
 		A1A2761D2CF0A3E5005862BD /* LevelC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LevelC.h; sourceTree = "<group>"; };
 		A1A2761E2CF0A3ED005862BD /* LevelC.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LevelC.cpp; sourceTree = "<group>"; };
-		A1A276222CF25C68005862BD /* piplup.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = piplup.png; sourceTree = "<group>"; };
 		A1A276232CF29059005862BD /* GameLost.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameLost.h; sourceTree = "<group>"; };
 		A1A276242CF29071005862BD /* GameLost.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = GameLost.cpp; sourceTree = "<group>"; };
 		A1A276262CF2949A005862BD /* GameWon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameWon.h; sourceTree = "<group>"; };
@@ -114,22 +107,15 @@
 			isa = PBXGroup;
 			children = (
 				A1F81C572CEF95440046DAFB /* font1.png */,
-				A1A2761A2CF07A84005862BD /* ash_ketchup.png */,
 				A19551552D09DFB400770619 /* coin.mp3 */,
-				A1A2761B2CF08415005862BD /* tilesheet.png */,
 				A19551562D09E18600770619 /* unlocked.mp3 */,
 				A103CC212D069FA7000A0431 /* knight.png */,
 				A103CC262D06DE3D000A0431 /* dungeon.png */,
 				A103CC292D09B827000A0431 /* arrow.png */,
-				A103CC232D06AA12000A0431 /* knight_2.png */,
 				A103CC272D06E780000A0431 /* Coin.png */,
-				A103CC222D06A576000A0431 /* centered_knight.png */,
-				A1A2761C2CF09A44005862BD /* extended_tilesheet.png */,
-				A1A276222CF25C68005862BD /* piplup.png */,
 				A103CC282D07B627000A0431 /* skeleton.png */,
 				A1A276292CF2B920005862BD /* jump.wav */,
 				A1A2762A2CF2BBCF005862BD /* bg_music.mp3 */,
-				A103CC2A2D09BC11000A0431 /* arrow (1).png */,
 				A1A2762B2CF2BED8005862BD /* lvlup.wav */,
 				A1A2762C2CF2C35B005862BD /* damage.mp3 */,
 			);

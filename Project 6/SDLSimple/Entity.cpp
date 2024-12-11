@@ -403,7 +403,6 @@ void Entity::update(float delta_time, Entity *player, Entity *collidable_entitie
     m_collided_left = false;
     m_collided_right = false;
 
-    // AI logic (only for enemies)
     if (m_entity_type == ENEMY) {
         ai_activate(player, delta_time);
     }
@@ -432,12 +431,8 @@ void Entity::render(ShaderProgram* program)
     
     m_model_matrix = glm::mat4(1.0f);
     m_model_matrix = glm::translate(m_model_matrix, m_position);
+    m_model_matrix = glm::scale(m_model_matrix, m_scale);
 
-    // Scaling for visual size, without affecting the collision
-//    m_model_matrix = glm::scale(m_model_matrix, glm::vec3(m_init_scale, m_init_scale, 1.0f));
-    m_model_matrix = glm::scale(m_model_matrix, m_scale); // Add scale transformation here
-
-    
     program->set_model_matrix(m_model_matrix);
 
     if (m_animation_indices != NULL)

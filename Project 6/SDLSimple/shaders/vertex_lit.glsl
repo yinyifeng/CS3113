@@ -11,8 +11,6 @@ varying vec2 varPosition;
 
 void main()
 {
-    // Largely the same
-    // But now we have a position in the equation
     vec4 p = modelMatrix * position;
     varPosition = vec2(p.x, p.y);
     texCoordVar = texCoord;

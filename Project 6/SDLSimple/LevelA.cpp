@@ -14,7 +14,7 @@
 #define LEVELA_WIDTH 36
 #define LEVELA_HEIGHT 28
 
-constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight_2.png",
+constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight.png",
                TILESET_FILEPATH[]       = "assets/dungeon.png",
                ENEMY_FILEPATH[]         = "assets/skeleton.png",
                COIN_FILEPATH[]          = "assets/coin.png";
@@ -148,11 +148,6 @@ void LevelA::initialise()
     {
         m_game_state.coins[i] =  Entity(coin_texture_id, 0.0f, 0.5f, 0.5f, COIN);
         m_game_state.coins[i].set_scale(glm::vec3(0.3f));
-//        std::cout << "Coin " << i << " scale: ("
-//                  << m_game_state.coins[i].get_scale().x << ", "
-//                  << m_game_state.coins[i].get_scale().y << ", "
-//                  << m_game_state.coins[i].get_scale().z << ")" << std::endl;
-
     }
     
     m_game_state.coins[0].set_position(glm::vec3(4.0f, -4.5f, 0.0f));
@@ -169,7 +164,7 @@ void LevelA::update(float delta_time) {
     // Get the player's position
     glm::vec3 player_position = m_game_state.player->get_position();
 
-    // Clamp the player's position in X and Y directions
+    // Clamp the player's X and Y positions
     if (player_position.x < 0.5f) {
         player_position.x = 0.5f;
     }
@@ -219,7 +214,7 @@ void LevelA::update(float delta_time) {
         }
     }
     
-    // Coin
+    // Coin collecting
     for (int i = 0; i < COINS_COUNT; i++) {
         if (m_game_state.coins[i].get_is_active() &&
             m_game_state.player->check_collision(&m_game_state.coins[i])) {

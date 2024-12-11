@@ -14,7 +14,7 @@
 #define LEVELC_WIDTH 36
 #define LEVELC_HEIGHT 28
 
-constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight_2.png",
+constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight.png",
                TILESET_FILEPATH[]       = "assets/dungeon.png",
                ENEMY_FILEPATH[]         = "assets/skeleton.png",
                COIN_FILEPATH[]          = "assets/coin.png";
@@ -163,7 +163,7 @@ void LevelC::update(float delta_time) {
         
     glm::vec3 player_position = m_game_state.player->get_position();
 
-    // Clamp player position within level bounds
+    // Clamp player position
     if (player_position.x < 0.5f) player_position.x = 0.5f;
     if (player_position.x > LEVELC_WIDTH * 0.5f) player_position.x = LEVELC_WIDTH * 0.5f;
     if (player_position.y > -0.5f) player_position.y = -0.5f;
@@ -181,15 +181,12 @@ void LevelC::update(float delta_time) {
     if (camera_y < -(LEVELC_HEIGHT * 0.5f) + 3.5f) camera_y = -(LEVELC_HEIGHT * 0.5f) + 3.5f;
     if (camera_y > 0.0f) camera_y = 0.0f;
 
-    // Update view matrix (camera transformation)
+    // Update view matrix
     m_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-camera_x, -camera_y, 0));
     
     for (int i = 0; i < ENEMY_COUNT; i++)
     {
-        // Activate enemy AI
         m_game_state.enemies[i].ai_activate(m_game_state.player, delta_time);
-        
-        // Update active enemies
         if (m_game_state.enemies[i].get_is_active()) {
             m_game_state.enemies[i].update(delta_time, m_game_state.player, NULL, 0, m_game_state.map);
         }
@@ -210,16 +207,8 @@ void LevelC::update(float delta_time) {
             Mix_PlayChannel(-1, m_game_state.coin_sfx, 0);
         }
     }
-    
-//    // Log the tile the player is walking on
-//        int tile_x = static_cast<int>(floor(player_position.x / 0.5f));  // Convert position to tile index
-//        int tile_y = static_cast<int>(-ceil(player_position.y / 0.5f));
-//        int current_tile = LEVELC_DATA[tile_y * LEVELC_WIDTH + tile_x];
-//
-//        std::cout << "Player Position: X = " << player_position.x << ", Y = " << player_position.y << std::endl;
-//        std::cout << "Player Tile: [" << tile_x << ", " << tile_y << "] with value: " << current_tile << std::endl;
 
-    // Check for all coins collected
+    // Check if all coins are collected
     if (m_coins_collected == COINS_COUNT) {
         LEVELC_DATA[10 * LEVELC_WIDTH + 32] = 50;
         m_game_state.map->build();
@@ -239,9 +228,6 @@ void LevelC::update(float delta_time) {
 
 
 void LevelC::render(ShaderProgram *g_shader_program) {
-    // Pass the view matrix to the shader
-//    g_shader_program->set_view_matrix(m_view_matrix);
-
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -274,8 +260,5 @@ void LevelC::render(ShaderProgram *g_shader_program) {
         0.3f, 0.0f, // Text size and spacing
         glm::vec3(-4.5f, 3.5f, 0.0f) // Adjust position to top-left corner
     );
-
-    // Restore the main view matrix for game rendering
-//    g_shader_program->set_view_matrix(m_view_matrix);
 }
 

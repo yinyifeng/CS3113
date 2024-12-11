@@ -23,16 +23,12 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "ShaderProgram.h"
 
-constexpr unsigned int NON_COLLIDABLE_TILES[] = {0, 72, 73, 74, 75, 77, 78, 79, 80, 87, 88, 94, 95, 97, 98}; // Add IDs of tiles that are not solid
-
-
 class Map
 {
 private:
     int m_width;
     int m_height;
     
-    // Here, the level_data is the numerical "drawing" of the map
     unsigned int *m_level_data;
     GLuint m_texture_id;
     

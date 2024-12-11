@@ -44,10 +44,10 @@ void GameLost::render(ShaderProgram* g_shader_program) {
     float text_size = 0.5f;
     float text_spacing = 0.05f;
     
-    // Render "Game Over!" centered
+    // Render "Game Over!"
     Utility::draw_text(g_shader_program, g_font_texture_id, "Game Over!", text_size, text_spacing, glm::vec3(-2.8f, 1.5f, 0.0f));
 
-    // Render "You Won!" slightly below
+    // Render "You Lose!"
     Utility::draw_text(g_shader_program, g_font_texture_id, "You Lose!", text_size, text_spacing, glm::vec3(-2.3f, 0.0f, 0.0f));
 }
 

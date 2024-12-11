@@ -14,7 +14,7 @@
 #define LEVELB_WIDTH 25
 #define LEVELB_HEIGHT 15
 
-constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight_2.png",
+constexpr char SPRITESHEET_FILEPATH[]   = "assets/knight.png",
                TILESET_FILEPATH[]       = "assets/dungeon.png",
                ENEMY_FILEPATH[]         = "assets/skeleton.png",
                COIN_FILEPATH[]          = "assets/coin.png";
@@ -113,9 +113,10 @@ void LevelB::initialise()
 //    m_game_state.enemies[1].set_ai_state(IDLE);
     m_game_state.enemies[1].set_ai_type(ROTATOR);
     //    m_game_state.enemies[1].set_ai_state(IDLE);
-    m_game_state.enemies[1].m_orbit_center = glm::vec3(6.5f, -2.5f, 0.0f); // Center of the orbit
-    m_game_state.enemies[1].m_orbit_radius = 1.0f; // Radius of the orbit
-    m_game_state.enemies[1].m_orbit_speed = 45.0f; // Speed in degrees per second
+    // Orbit parameters
+    m_game_state.enemies[1].m_orbit_center = glm::vec3(6.5f, -2.5f, 0.0f);
+    m_game_state.enemies[1].m_orbit_radius = 1.0f;
+    m_game_state.enemies[1].m_orbit_speed = 45.0f;
     
     m_game_state.enemies[2].set_position(glm::vec3(7.45f, -5.5f, 0.0f));
     m_game_state.enemies[2].set_ai_type(WALKER);
@@ -157,7 +158,7 @@ void LevelB::update(float delta_time)
         
     glm::vec3 player_position = m_game_state.player->get_position();
 
-    // Clamp player position within level bounds
+    // Clamp player position
     if (player_position.x < 0.5f) player_position.x = 0.5f;
     if (player_position.x > LEVELB_WIDTH * 0.5f) player_position.x = LEVELB_WIDTH * 0.5f;
     if (player_position.y > -0.5f) player_position.y = -0.5f;
@@ -169,21 +170,18 @@ void LevelB::update(float delta_time)
     float camera_x = player_position.x;
     float camera_y = player_position.y;
 
-    // Clamp camera position within bounds
+    // Clamp camera position
     if (camera_x < 4.0f) camera_x = 4.0f;
     if (camera_x > (LEVELB_WIDTH * 0.5f) - 5.0f) camera_x = (LEVELB_WIDTH * 0.5f) - 5.0f;
     if (camera_y < -(LEVELB_HEIGHT * 0.5f) + 3.5f) camera_y = -(LEVELB_HEIGHT * 0.5f) + 3.5f;
     if (camera_y > 0.0f) camera_y = 0.0f;
 
-    // Update view matrix (camera transformation)
+    // Update view matrix
     m_view_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(-camera_x, -camera_y, 0));
     
     for (int i = 0; i < ENEMY_COUNT; i++)
     {
-        // Activate enemy AI
         m_game_state.enemies[i].ai_activate(m_game_state.player, delta_time);
-        
-        // Update active enemies
         if (m_game_state.enemies[i].get_is_active()) {
             m_game_state.enemies[i].update(delta_time, m_game_state.player, NULL, 0, m_game_state.map);
              
@@ -201,18 +199,18 @@ void LevelB::update(float delta_time)
         if (m_game_state.coins[i].get_is_active() &&
             m_game_state.player->check_collision(&m_game_state.coins[i])) {
             
-            m_game_state.coins[i].deactivate();  // Deactivate the coin
-            m_coins_collected++;                // Increment coin counter
+            m_game_state.coins[i].deactivate();
+            m_coins_collected++;
             Mix_PlayChannel(-1, m_game_state.coin_sfx, 0);
         }
     }
 
         // Check if all coins are collected
         if (m_coins_collected == COINS_COUNT) {
-            // Change tile at [7][7] to 50
+            // Change tile at [7][22] to 50
             LEVELB_DATA[7 * LEVELB_WIDTH + 22] = 50;
 
-            // Rebuild the map to reflect the updated tile
+            // Rebuild the map to update tile
             m_game_state.map->build();
             if (!played){
                 Mix_PlayChannel(-1, m_game_state.lvl_up, 0);
@@ -225,16 +223,14 @@ void LevelB::update(float delta_time)
         glm::vec3 tile_50_position = glm::vec3(22 * 0.5f, -7 * 0.5f, 0.0f); // Calculate tile 50 position
         if (m_coins_collected == COINS_COUNT &&
             glm::distance(m_game_state.player->get_position(), tile_50_position) < 0.25f) {
-            
-//            std::cout << "Player collided with tile 50! Transitioning to LevelB." << std::endl;
-            m_game_state.next_scene_id = 3;  // Transition to LevelB
+            m_game_state.next_scene_id = 3;  // Transition to LevelC
         }
 }
 
 
 void LevelB::render(ShaderProgram *g_shader_program)
 {
-    // Apply the view matrix before rendering the game world
+    // Apply the view matrix before rendering the game
     g_shader_program->set_view_matrix(m_view_matrix);
 
     // Clear the screen
@@ -266,8 +262,8 @@ void LevelB::render(ShaderProgram *g_shader_program)
         g_shader_program,
         Utility::load_texture("assets/font1.png"), // Font texture
         "Coins: " + std::to_string(m_coins_collected) + "/" + std::to_string(COINS_COUNT),
-        0.3f, 0.0f, // Text size and spacing
-        glm::vec3(-4.5f, 3.5f, 0.0f) // Adjust position to top-left corner
+        0.3f, 0.0f,
+        glm::vec3(-4.5f, 3.5f, 0.0f)
     );
 }
 

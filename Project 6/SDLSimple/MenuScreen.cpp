@@ -47,11 +47,10 @@ void Menu::render(ShaderProgram* g_shader_program) {
     float text_size = 0.7f;
     float text_spacing = 0.05f;
     
-    // Render "Game Over!" centered
+    // Render game name
     Utility::draw_text(g_shader_program, g_font_texture_id, "The Glitch", text_size, text_spacing, glm::vec3(-3.3f, 2.5f, 0.0f));
 
-    // Render "You Won!" slightly below
+    // Render start instructions
     Utility::draw_text(g_shader_program, g_font_texture_id, "'Enter' to Play", 0.3, text_spacing, glm::vec3(-2.8f, 0.0f, 0.0f));
-    
     Utility::draw_text(g_shader_program, g_font_texture_id, "'C' for Light", 0.3, text_spacing, glm::vec3(-2.6f, -1.5f, 0.0f));
 }

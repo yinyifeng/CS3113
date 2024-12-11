@@ -1,6 +1,6 @@
 uniform sampler2D diffuse;
 uniform vec2 lightPosition;
-uniform float lightRadius; // Declare as a uniform to allow dynamic updates
+uniform float lightRadius;
 
 varying vec2 texCoordVar;
 varying vec2 varPosition;
@@ -19,7 +19,6 @@ void main()
 {
     float dist = distance(lightPosition, varPosition);
 
-    // Set brightness to 0 if outside light radius
     float brightness = (dist < lightRadius) ? attenuate(dist, linearAttenuation, quadraticAttenuation) * brightnessFactor : 0.0;
 
     vec4 color = texture2D(diffuse, texCoordVar);
